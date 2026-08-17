@@ -66,10 +66,10 @@ class Chapter extends ActiveRecord
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
-            'description' => 'Description',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'name' => 'Naam',
+            'description' => 'Omschrijving',
+            'created_at' => 'Gemaakt Op',
+            'updated_at' => 'Gewijzigd Op',
         ];
     }
 

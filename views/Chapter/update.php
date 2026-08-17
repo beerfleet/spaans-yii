@@ -5,10 +5,10 @@ use yii\helpers\Html;
 /** @var yii\web\View $this */
 /** @var app\models\Chapter $model */
 
-$this->title = 'Update Chapter: ' . $model->name;
-$this->params['breadcrumbs'][] = ['label' => 'Chapters', 'url' => ['index']];
+$this->title = 'Wijzig hoofdstuk: ' . $model->name;
+$this->params['breadcrumbs'][] = ['label' => 'Hoofdstukken', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = 'Update';
+$this->params['breadcrumbs'][] = 'Wijzig';
 ?>
 <div class="chapter-update">
 

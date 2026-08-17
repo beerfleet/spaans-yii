@@ -10,7 +10,7 @@ use yii\grid\GridView;
 /** @var app\models\ChapterSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = 'Chapters';
+$this->title = 'Hoofdstukken';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="chapter-index">
@@ -18,7 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Create Chapter', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('Nieuw hoofdstuk', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
