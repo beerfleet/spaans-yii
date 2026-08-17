@@ -3,6 +3,8 @@
 namespace app\models;
 
 use Yii;
+use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "chapter".
@@ -15,7 +17,7 @@ use Yii;
  *
  * @property Word[] $words
  */
-class Chapter extends \yii\db\ActiveRecord
+class Chapter extends ActiveRecord
 {
 
 
@@ -34,10 +36,26 @@ class Chapter extends \yii\db\ActiveRecord
     {
         return [
             [['description'], 'default', 'value' => null],
-            [['name', 'created_at', 'updated_at'], 'required'],
+            //[['name', 'created_at', 'updated_at'], 'required'],
+            [['name'], 'required'],
             [['description'], 'string'],
             [['created_at', 'updated_at'], 'integer'],
             [['name'], 'string', 'max' => 255],
+        ];
+    }
+
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => TimestampBehavior::class,
+                'attributes' => [
+                    ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at'],
+                    ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
+                ],
+                // Gebruik een database-expressie zoals NOW() als je DATETIME/TIMESTAMP velden gebruikt i.p.v. Unix timestamps
+                // 'value' => new \yii\db\Expression('NOW()'),
+            ],
         ];
     }
 
