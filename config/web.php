@@ -19,12 +19,21 @@ $config = [
     ],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
-        '@npm'   => '@vendor/npm-asset',
+        '@npm' => '@vendor/npm-asset',
     ],
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'im5GH0pnE_o9HglmRdjrAZDc_WGAHoQT',
+        ],
+        'urlManager' => [
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+            'enableStrictParsing' => false,
+            'rules' => [
+                // Add custom routing rules here if needed, e.g.:
+                // 'word' => 'word/index',
+            ],
         ],
         'cache' => [
             'class' => \yii\caching\FileCache::class,
