@@ -33,6 +33,13 @@ $config = [
             'rules' => [
                 // Add custom routing rules here if needed, e.g.:
                 // 'word' => 'word/index',
+                'chapter/index' => 'chapter',
+                'hoofdstuk' => 'chapter/index',
+                'hoofdstuk/maak' => 'chapter/create',                
+                'hoofdstuk/wijzig/<id:\d+>' => 'chapter/update',
+                'hoofdstuk/bekijk/<id:\d+>' => 'chapter/view',
+                'hoofdstuk/wis/<id:\d+>' => 'chapter/delete'
+                
             ],
         ],
         'cache' => [
