@@ -42,6 +42,9 @@ $config = [
                 
             ],
         ],
+        'view' => [
+            'title' => 'Oefeningen Woordenschat Spaans'
+        ],
         'cache' => [
             'class' => \yii\caching\FileCache::class,
         ],

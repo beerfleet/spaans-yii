@@ -41,7 +41,8 @@ $items = [
 <header id="header">
     <?php NavBar::begin(
         [
-            'brandLabel' => Yii::$app->name,
+            //'brandLabel' => Yii::$app->name,
+            'brandLabel' => Yii::$app->params['appName'],
             'brandUrl' => Yii::$app->homeUrl,
             'options' => ['class' => 'navbar-expand-md navbar-dark bg-dark fixed-top']
         ],
