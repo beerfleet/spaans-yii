@@ -22,7 +22,7 @@ class WordController extends Controller
             parent::behaviors(),
             [
                 'verbs' => [
-                    'class' => VerbFilter::className(),
+                    'class' => VerbFilter::class,
                     'actions' => [
                         'delete' => ['POST'],
                     ],
@@ -78,6 +78,36 @@ class WordController extends Controller
         }
 
         return $this->render('create', [
+            'model' => $model,
+        ]);
+    }
+
+    /**
+     * Creates multiple Words and adds them to the database
+     * @return string|\yii\web\Response
+     */
+    public function actionCreateMultiple()
+    {
+        $model = new Word();
+        $model->scenario = 'bulkCreate'; // Set the scenario to bulkCreate
+
+        if ($model->load($this->request->post()) && $model->validate()) {
+            $words = explode(PHP_EOL, $model->spanish);
+            foreach ($words as $word) {
+                $word = trim($word);
+                if (!empty($word)) {
+                    $newWord = new Word();
+                    $newWord->spanish = $word;
+                    $newWord->chapter_id = $model->chapter_id;
+                    $newWord->created_at = date('Y-m-d H:i:s');
+                    $newWord->updated_at = date('Y-m-d H:i:s');
+                    $newWord->save();
+                }
+            }
+            return $this->redirect(['index']);
+        }
+
+        return $this->render('create-multiple', [
             'model' => $model,
         ]);
     }
