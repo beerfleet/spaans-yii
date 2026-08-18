@@ -13,13 +13,17 @@ $items = [
         'label' => 'Home',
         'url' => ['/site/index'],
     ],
-    [
+    /* [
         'label' => 'About',
         'url' => ['/site/about'],
     ],
     [
         'label' => 'Contact',
         'url' => ['/site/contact'],
+    ], */
+    [
+        'label'=> 'Hoofdstukken',
+        'url' => ['/hoofdstuk'],
     ],
     [
         'label' => 'Login',

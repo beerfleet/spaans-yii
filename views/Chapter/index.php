@@ -26,6 +26,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
+        'summary' => 'Toont {begin}-{end} van de {count} items.',
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
