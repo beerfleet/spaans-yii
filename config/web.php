@@ -38,7 +38,10 @@ $config = [
                 'hoofdstuk/maak' => 'chapter/create',                
                 'hoofdstuk/wijzig/<id:\d+>' => 'chapter/update',
                 'hoofdstuk/bekijk/<id:\d+>' => 'chapter/view',
-                'hoofdstuk/wis/<id:\d+>' => 'chapter/delete'
+                'hoofdstuk/wis/<id:\d+>' => 'chapter/delete',
+                'word/index' => 'word',
+                'woord' => 'word/index',
+                'woord/maak' => 'word/create'
                 
             ],
         ],
