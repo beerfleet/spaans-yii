@@ -16,7 +16,7 @@ class m260816_210922_create_log_table extends Migration
             'id' => $this->primaryKey(),
             'level' => $this->string(),
             'category' => $this->string(),
-            'log_time' => $this->timestamp(),
+            'log_time' => $this->integer(),
             'prefix' => $this->string(),
             'message' => $this->text(),
             'user_id' => $this->integer(),

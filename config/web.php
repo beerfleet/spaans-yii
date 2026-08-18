@@ -60,9 +60,9 @@ $config = [
                     'class' => \yii\log\FileTarget::class,
                     'levels' => ['error', 'warning'],
                 ],
-                [
+                /* [
                     'class' => \yii\log\DbTarget::class,
-                ],
+                ], */
             ],
         ],
         'db' => $db,
