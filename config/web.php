@@ -41,7 +41,8 @@ $config = [
                 'hoofdstuk/wis/<id:\d+>' => 'chapter/delete',
                 'word/index' => 'word',
                 'woord' => 'word/index',
-                'woord/maak' => 'word/create'
+                'woord/maak' => 'word/create',
+                'woord/maak/bulk' => 'word/create-multiple'
                 
             ],
         ],
