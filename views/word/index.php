@@ -31,15 +31,21 @@ $this->params['breadcrumbs'][] = $this->title;
 
             'id',
             'chapter_id',
-            'dutch',
             'spanish',
-            'created_at',
-            //'updated_at',
+            'dutch',
             [
-                'class' => ActionColumn::className(),
+                'attribute' => 'created_at',
+                'format' => ['datetime', 'php:d-m-Y H:i:s']
+            ],
+            [
+                'attribute' => 'updated_at',
+                'format' => ['datetime', 'php:d-m-Y H:i:s']
+            ],
+            [
+                'class' => ActionColumn::class,
                 'urlCreator' => function ($action, Word $model, $key, $index, $column) {
-                    return Url::toRoute([$action, 'id' => $model->id]);
-                 }
+                        return Url::toRoute([$action, 'id' => $model->id]);
+                    }
             ],
         ],
     ]); ?>

@@ -31,10 +31,16 @@ $this->params['breadcrumbs'][] = $this->title;
         'attributes' => [
             'id',
             'chapter_id',
-            'dutch',
             'spanish',
-            'created_at',
-            'updated_at',
+            'dutch',
+            [
+                'attribute' => 'created_at',
+                'format' => ['datetime', 'php:d-m-Y H:i:s']
+            ],
+            [
+                'attribute' => 'updated_at',
+                'format' => ['datetime', 'php:d-m-Y H:i:s']
+            ],
         ],
     ]) ?>
 

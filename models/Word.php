@@ -3,6 +3,8 @@
 namespace app\models;
 
 use Yii;
+use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "word".
@@ -16,7 +18,7 @@ use Yii;
  *
  * @property Chapter $chapter
  */
-class Word extends \yii\db\ActiveRecord
+class Word extends ActiveRecord
 {
 
 
@@ -34,10 +36,25 @@ class Word extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['chapter_id', 'dutch', 'spanish', 'created_at', 'updated_at'], 'required'],
+            [['chapter_id', 'dutch', 'spanish'], 'required'],
             [['chapter_id', 'created_at', 'updated_at'], 'integer'],
             [['dutch', 'spanish'], 'string', 'max' => 255],
             [['chapter_id'], 'exist', 'skipOnError' => true, 'targetClass' => Chapter::class, 'targetAttribute' => ['chapter_id' => 'id']],
+        ];
+    }
+
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => TimestampBehavior::class,
+                'attributes' => [
+                    ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at'],
+                    ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
+                ],
+                // Gebruik een database-expressie zoals NOW() als je DATETIME/TIMESTAMP velden gebruikt i.p.v. Unix timestamps
+                // 'value' => new \yii\db\Expression('NOW()'),
+            ],
         ];
     }
 
@@ -48,11 +65,11 @@ class Word extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'chapter_id' => 'Chapter ID',
-            'dutch' => 'Dutch',
-            'spanish' => 'Spanish',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'chapter_id' => 'Hoofdstuk',
+            'dutch' => 'Nederlands',
+            'spanish' => 'Spaans',
+            'created_at' => 'Gemaakt op',
+            'updated_at' => 'Gewijzigd op',
         ];
     }
 
