@@ -35,12 +35,21 @@ class Word extends ActiveRecord
      */
     public function rules()
     {
-        return [
-            [['chapter_id', 'dutch', 'spanish'], 'required'],
+        $rules = [
+            [['chapter_id', 'spanish', 'dutch'], 'required'],
             [['chapter_id', 'created_at', 'updated_at'], 'integer'],
             [['dutch', 'spanish'], 'string', 'max' => 255],
             [['chapter_id'], 'exist', 'skipOnError' => true, 'targetClass' => Chapter::class, 'targetAttribute' => ['chapter_id' => 'id']],
         ];
+
+        if ($this->scenario === 'bulkCreate') {
+            // Remove the required rule for 'dutch' in the bulk create scenario
+            $rules = array_filter($rules, function ($rule) {
+                return !in_array('dutch', $rule);
+            });
+        }
+
+        return $rules;
     }
 
     public function behaviors()
@@ -66,8 +75,8 @@ class Word extends ActiveRecord
         return [
             'id' => 'ID',
             'chapter_id' => 'Hoofdstuk',
-            'dutch' => 'Nederlands',
             'spanish' => 'Spaans',
+            'dutch' => 'Nederlands',
             'created_at' => 'Gemaakt op',
             'updated_at' => 'Gewijzigd op',
         ];
@@ -81,6 +90,20 @@ class Word extends ActiveRecord
     public function getChapter()
     {
         return $this->hasOne(Chapter::class, ['id' => 'chapter_id']);
+    }
+
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios['bulkCreate'] = ['chapter_id', 'spanish', 'created_at', 'updated_at'];
+        return $scenarios;
+    }
+
+    public function validate($attributeNames = null, $clearErrors = true)
+    {
+        Yii::debug('Current scenario: ' . $this->scenario);
+
+        return parent::validate($attributeNames, $clearErrors);
     }
 
 }

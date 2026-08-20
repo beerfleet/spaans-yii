@@ -7,6 +7,7 @@ use app\models\WordSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use Yii;
 
 /**
  * WordController implements the CRUD actions for Word model.
@@ -92,16 +93,30 @@ class WordController extends Controller
         $model->scenario = 'bulkCreate'; // Set the scenario to bulkCreate
 
         if ($model->load($this->request->post()) && $model->validate()) {
-            $words = explode(PHP_EOL, $model->spanish);
+            $words = preg_split('/[\s,;]+/', $model->spanish, -1, PREG_SPLIT_NO_EMPTY);
+
+            Yii::debug('Words to be saved: ' . print_r($words, true));
+
             foreach ($words as $word) {
                 $word = trim($word);
                 if (!empty($word)) {
                     $newWord = new Word();
+                    $newWord->scenario = "bulkCreate";
                     $newWord->spanish = $word;
                     $newWord->chapter_id = $model->chapter_id;
-                    $newWord->created_at = date('Y-m-d H:i:s');
-                    $newWord->updated_at = date('Y-m-d H:i:s');
-                    $newWord->save();
+                    $newWord->created_at = strtotime(date('Y-m-d H:i:s'));
+                    $newWord->updated_at = strtotime(date('Y-m-d H:i:s'));
+
+                    // Check if the word is valid before saving
+                    if ($newWord->validate()) {
+                        $newWord->save();
+
+                        Yii::debug('Word saved: ' . $newWord->spanish);
+
+                    } else {
+                        // Handle validation errors
+                        Yii::error('Failed to save word: ' . print_r($newWord->errors, true));
+                    }
                 }
             }
             return $this->redirect(['index']);

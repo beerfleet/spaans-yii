@@ -17,7 +17,8 @@ use yii\widgets\ActiveForm;
         ['prompt' => 'Kies een hoofdstuk']
     )->label("Hoofdstuk") ?>    
 
-    <?= $form->field($model, 'spanish')->textInput(['maxlength' => true])->label('Spaans') ?>    
+    <!-- <?= $form->field($model, 'spanish')->textInput(['maxlength' => true])->label('Spaans') ?>     -->
+     <?= $form->field($model, 'spanish')->textarea(['maxlength' => true])->label('Spaans') ?>
 
     <div class="form-group">
         <?= Html::submitButton('Opslaan', ['class' => 'btn btn-success']) ?>

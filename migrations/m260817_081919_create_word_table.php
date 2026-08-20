@@ -15,7 +15,7 @@ class m260817_081919_create_word_table extends Migration
         $this->createTable('{{%word}}', [
             'id' => $this->primaryKey(),
             'chapter_id' => $this->integer()->notNull(),
-            'dutch' => $this->string()->notNull(),
+            'dutch' => $this->string(),
             'spanish' => $this->string()->notNull(),
             'created_at' => $this->integer()->notNull(),
             'updated_at' => $this->integer()->notNull(),
