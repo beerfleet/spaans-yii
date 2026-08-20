@@ -110,9 +110,7 @@ class WordController extends Controller
                     // Check if the word is valid before saving
                     if ($newWord->validate()) {
                         $newWord->save();
-
-                        Yii::debug('Word saved: ' . $newWord->spanish);
-
+                        //Yii::debug('Word saved: ' . $newWord->spanish);
                     } else {
                         // Handle validation errors
                         Yii::error('Failed to save word: ' . print_r($newWord->errors, true));
