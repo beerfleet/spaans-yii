@@ -10,7 +10,7 @@ use yii\grid\GridView;
 /** @var app\models\WordSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = 'Words';
+$this->title = 'Woorden';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="word-index">
