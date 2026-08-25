@@ -26,6 +26,10 @@ $items = [
         'url' => ['/hoofdstuk'],
     ],
     [
+        'label'=> 'Woorden',
+        'url' => ['/woord'],
+    ],
+    [
         'label' => 'Login',
         'url' => ['/site/login'],
         'visible' => Yii::$app->user->isGuest,
