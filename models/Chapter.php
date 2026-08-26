@@ -39,6 +39,7 @@ class Chapter extends ActiveRecord
             //[['name', 'created_at', 'updated_at'], 'required'],
             [['name'], 'required'],
             [['number'], 'integer'],
+            [['number'], 'unique'],
             [['description'], 'string'],
             [['created_at', 'updated_at'], 'integer'],
             [['name'], 'string', 'max' => 255],
