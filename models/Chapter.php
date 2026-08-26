@@ -38,6 +38,7 @@ class Chapter extends ActiveRecord
             [['description'], 'default', 'value' => null],
             //[['name', 'created_at', 'updated_at'], 'required'],
             [['name'], 'required'],
+            [['number'], 'integer'],
             [['description'], 'string'],
             [['created_at', 'updated_at'], 'integer'],
             [['name'], 'string', 'max' => 255],
@@ -67,6 +68,7 @@ class Chapter extends ActiveRecord
         return [
             'id' => 'ID',
             'name' => 'Naam',
+            'number' => 'Hoofdstuk #',
             'description' => 'Omschrijving',
             'created_at' => 'Gemaakt Op',
             'updated_at' => 'Gewijzigd Op',
