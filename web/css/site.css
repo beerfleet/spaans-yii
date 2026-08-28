@@ -43,6 +43,19 @@ a.desc:after {
     color: var(--bs-secondary-color);
 }
 
+/* make Yii validation messages prominent throughout the application */
+.help-block:not(:empty) {
+    display: block;
+    margin-top: .5rem;
+    padding: .75rem 1rem;
+    color: var(--bs-danger-text-emphasis);
+    background-color: var(--bs-danger-bg-subtle);
+    border: var(--bs-border-width) solid var(--bs-danger-border-subtle);
+    border-left: .25rem solid var(--bs-danger);
+    border-radius: var(--bs-border-radius);
+    font-weight: 600;
+}
+
 .error-summary {
     color: var(--bs-danger-text-emphasis);
     background: var(--bs-danger-bg-subtle);
@@ -223,6 +236,18 @@ a.desc:after {
 /* contact form textarea height */
 .site-contact textarea.form-control {
     height: 140px;
+}
+
+/* make validation messages prominent throughout the application */
+.invalid-feedback {
+    margin-top: .5rem;
+    padding: .75rem 1rem;
+    color: var(--bs-danger-text-emphasis);
+    background-color: var(--bs-danger-bg-subtle);
+    border: var(--bs-border-width) solid var(--bs-danger-border-subtle);
+    border-left: .25rem solid var(--bs-danger);
+    border-radius: var(--bs-border-radius);
+    font-weight: 600;
 }
 
 /* captcha: blend with card background */
