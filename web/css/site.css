@@ -1,4 +1,4 @@
-main > .container {
+main>.container {
     padding: 70px 15px 20px;
     display: flex;
     flex-direction: column;
@@ -11,7 +11,8 @@ main > .container {
 }
 
 /* add sorting icons to gridview sort links */
-a.asc:after, a.desc:after {
+a.asc:after,
+a.desc:after {
     content: '';
     left: 3px;
     display: inline-block;
@@ -51,13 +52,13 @@ a.desc:after {
 }
 
 /* align navbar brand baseline with nav links */
-.navbar > .container,
-.navbar > .container-fluid {
+.navbar>.container,
+.navbar>.container-fluid {
     align-items: baseline;
 }
 
 /* align the logout "link" (button in form) of the navbar */
-.nav li > form > button.logout {
+.nav li>form>button.logout {
     color: var(--bs-navbar-color);
 }
 
@@ -76,10 +77,17 @@ a.desc:after {
 }
 
 /* footer logo: light logo by default (light bg-body-tertiary), dark logo for dark theme */
-.footer-logo-dark { display: none; }
+.footer-logo-dark {
+    display: none;
+}
 
-[data-bs-theme="dark"] .footer-logo-light { display: none; }
-[data-bs-theme="dark"] .footer-logo-dark  { display: inline-block; }
+[data-bs-theme="dark"] .footer-logo-light {
+    display: none;
+}
+
+[data-bs-theme="dark"] .footer-logo-dark {
+    display: inline-block;
+}
 
 /* login inputs: seamless icon inside input (Volt style) */
 .login-split-card .input-group {
@@ -115,7 +123,7 @@ a.desc:after {
 
 /* validation styles for login split card (browsers with :has()) */
 @supports selector(.input-group:has(.is-invalid)) {
-    .login-split-card .input-group:has(.is-invalid) ~ .invalid-feedback {
+    .login-split-card .input-group:has(.is-invalid)~.invalid-feedback {
         display: block;
         margin-top: .35rem;
         margin-bottom: .5rem;
@@ -247,6 +255,7 @@ a.desc:after {
 }
 
 @media (min-width: 576px) {
+
     .site-error .site-error-content,
     .site-about .site-about-content,
     .site-contact-success .site-contact-success-content {
@@ -255,6 +264,7 @@ a.desc:after {
 }
 
 @media (min-width: 768px) {
+
     .site-error .site-error-content,
     .site-about .site-about-content,
     .site-contact-success .site-contact-success-content {
@@ -263,6 +273,7 @@ a.desc:after {
 }
 
 @media (min-width: 992px) {
+
     .site-error .site-error-content,
     .site-about .site-about-content,
     .site-contact-success .site-contact-success-content {
@@ -323,4 +334,45 @@ a.desc:after {
 
 [data-bs-theme="dark"] .extension-card:hover {
     box-shadow: 0 0 0 1px var(--bs-border-color), 0 8px 24px rgba(0, 0, 0, .4) !important;
+}
+
+/* PRACTICE */
+.practice-start,
+.practice-practice,
+.practice-result {
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.practice-start h1,
+.practice-practice h1,
+.practice-result h1 {
+    margin-bottom: 1.5rem;
+}
+
+.practice-start .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.practice-practice .card {
+    background-color: var(--bs-tertiary-bg);
+    border-color: var(--bs-border-color);
+}
+
+.practice-practice .card-body {
+    padding: 3rem 1.5rem;
+}
+
+.practice-practice .card h2 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.practice-result .practice-score {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+#practiceselection-chapters label {
+    display: block;
 }
