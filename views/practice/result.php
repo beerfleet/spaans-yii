@@ -14,12 +14,14 @@ $percentage = $total > 0 ? round(($correct / $total) * 100) : 0;
 ?>
 
 <div class="practice-result">
-	<h1><?= Html::encode($this->title) ?></h1>
+    <h1><?= Html::encode($this->title) ?></h1>
 
-	<p>Totaal aantal woorden: <?= $total ?></p>
-	<p>Correct: <?= $correct ?></p>
-	<p>Fout: <?= $incorrect ?></p>
-	<p>Score: <?= $percentage ?>%</p>
+    <div class="practice-score mb-4">
+        <p>Totaal aantal woorden: <?= $total ?></p>
+        <p>Correct: <?= $correct ?></p>
+        <p>Fout: <?= $incorrect ?></p>
+        <p>Score: <?= $percentage ?>%</p>
+    </div>
 
-	<?= Html::a('Nieuwe oefening', ['start'], ['class' => 'btn btn-primary']) ?>
+    <?= Html::a('Nieuwe oefening', ['start'], ['class' => 'btn btn-primary']) ?>
 </div>
