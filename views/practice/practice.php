@@ -40,7 +40,10 @@ $answerLabel = $nlToSp ? 'Spaans' : 'Nederlands';
 
     <?= $form->field($answerModel, 'answer')
         ->label($answerLabel)
-        ->textInput(['autofocus' => true]) ?>
+        ->textInput([
+            'autofocus' => true,
+            'autocomplete' => 'off',
+        ]) ?>
 
     <div class="form-group">
         <?= Html::submitButton('Controleer', [
