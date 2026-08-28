@@ -30,10 +30,14 @@ $items = [
         'url' => ['/woord'],
     ],
     [
+        'label'=> 'Oefenen',
+        'url' => ['/oefenen'],
+    ],
+/*     [
         'label' => 'Login',
         'url' => ['/site/login'],
         'visible' => Yii::$app->user->isGuest,
-    ],
+    ], */
     [
         'label' => 'Logout (' . Html::encode(Yii::$app->user->identity?->username ?? '') . ')',
         'url' => ['/site/logout'],

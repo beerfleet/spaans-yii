@@ -42,7 +42,8 @@ $config = [
                 'word/index' => 'word',
                 'woord' => 'word/index',
                 'woord/maak' => 'word/create',
-                'woord/maak/bulk' => 'word/create-multiple'
+                'woord/maak/bulk' => 'word/create-multiple',
+                'oefenen' => 'practice/start',
                 
             ],
         ],
