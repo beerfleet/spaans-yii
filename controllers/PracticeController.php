@@ -99,8 +99,8 @@ class PracticeController extends Controller
             $session->setFlash(
                 $isCorrect ? 'success' : 'error',
                 $isCorrect
-                ? 'Correct!'
-                : 'Fout!'
+                ? trim($answerModel->answer) . ' is correct!'
+                : trim($answerModel->answer) . ' is fout!'
             );
 
             $practice['position']++;
