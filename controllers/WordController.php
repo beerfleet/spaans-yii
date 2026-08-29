@@ -61,6 +61,17 @@ class WordController extends Controller
         ]);
     }
 
+    public function actionListUntranslated() {
+        
+        $searchModel = new WordSearch();
+        $dataProvider = $searchModel->searchUntranslated($this->request->queryParams);
+
+        return $this->render('list-untranslated', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+        ]);
+    }
+
     /**
      * Creates a new Word model.
      * If creation is successful, the browser will be redirected to the 'view' page.

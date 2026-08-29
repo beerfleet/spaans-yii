@@ -70,4 +70,35 @@ class WordSearch extends Word
 
         return $dataProvider;
     }
+
+    public function searchUntranslated($params, $formName = null)
+    {
+        $query = Word::find()->where(['dutch' => null]);
+
+        // add conditions that should always apply here
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);
+
+        $this->load($params, $formName);
+
+        if (!$this->validate()) {
+            // uncomment the following line if you do not want to return any records when validation fails
+            // $query->where('0=1');
+            return $dataProvider;
+        }
+
+        // grid filtering conditions
+        $query->andFilterWhere([
+            'id' => $this->id,
+            'chapter_id' => $this->chapter_id,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ]);
+
+        $query->andFilterWhere(['like', 'spanish', $this->spanish]);
+
+        return $dataProvider;
+    }
 }
