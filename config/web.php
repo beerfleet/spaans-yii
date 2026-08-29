@@ -43,6 +43,10 @@ $config = [
                 'woord' => 'word/index',
                 'woord/maak' => 'word/create',
                 'woord/maak/bulk' => 'word/create-multiple',
+                'woord/wijzig/<id:\d+>' => 'word/update',
+                'woord/bekijk/<id:\d+>' => 'word/view',
+                'woord/wis/<id:\d+>' => 'word/delete',
+                'woord/onvertaald' => 'word/list-untranslated',
                 'oefenen' => 'practice/start',
                 
             ],

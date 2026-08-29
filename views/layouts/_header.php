@@ -22,12 +22,20 @@ $items = [
         'url' => ['/site/contact'],
     ], */
     [
-        'label'=> 'Hoofdstukken',
-        'url' => ['/hoofdstuk'],
+        'label' => 'Hoofdstukken',
+        'items' => [
+            ['label' => 'Lijst', 'url' => ['/hoofdstuk']],
+            ['label' => 'Nieuw hoofdstuk', 'url' => ['/chapter/create']],
+        ],
     ],
     [
-        'label'=> 'Woorden',
-        'url' => ['/woord'],
+        'label' => 'Woorden',
+        'items' => [
+            ['label' => 'Lijst', 'url' => ['/woord']],
+            ['label' => 'Nieuw woord', 'url' => ['/word/create']],
+            ['label' => 'Meerdere woorden', 'url' => ['/word/create-multiple']],
+            ['label' => 'Onvertaalde woorden', 'url' => ['/word/list-untranslated']],
+        ],
     ],
     [
         'label'=> 'Oefenen',
