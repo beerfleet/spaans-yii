@@ -30,10 +30,13 @@ class PracticeController extends Controller
             if ($wordIds === []) {
                 $model->addError('chapters', 'Er zijn geen woorden gevonden.');
             } else {
+                $maxWords = max(1, (int) $model->max_words);
+                $selectedWordIds = array_map('intval', array_slice($wordIds, 0, $maxWords));
+
                 Yii::$app->session->set('practice', [
                     'chapters' => $model->chapters,
                     'nl_to_sp' => $model->nl_to_sp,
-                    'word_ids' => array_map('intval', $wordIds),
+                    'word_ids' => $selectedWordIds,
                     'position' => 0,
                     'correct' => 0,
                 ]);

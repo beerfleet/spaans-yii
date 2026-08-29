@@ -32,6 +32,13 @@ foreach ($chapters as $chapter) {
 
     <?= $form->field($model, 'chapters')->checkboxList($chapterOptions) ?>
 
+    <?= $form->field($model, 'max_words')->textInput([
+        'type' => 'number',
+        'min' => 1,
+        'step' => 1,
+        'placeholder' => '20',
+    ]) ?>
+
     <?= $form->field($model, 'nl_to_sp')->radioList([
         1 => 'Nederlands naar Spaans',
         0 => 'Spaans naar Nederlands',
