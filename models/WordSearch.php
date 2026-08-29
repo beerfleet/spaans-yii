@@ -73,7 +73,7 @@ class WordSearch extends Word
 
     public function searchUntranslated($params, $formName = null)
     {
-        $query = Word::find()->where(['dutch' => null]);
+        $query = Word::find()->where(['or', ['dutch' => null], ['dutch' => '']]);
 
         // add conditions that should always apply here
 

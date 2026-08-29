@@ -17,7 +17,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1>
         <?= Html::encode($this->title) ?>
-    </h1>    
+    </h1>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
@@ -28,7 +28,21 @@ $this->params['breadcrumbs'][] = $this->title;
             'id',
             'chapter_id',
             'spanish',
-            'dutch',
+            [
+                'attribute' => 'dutch',
+                'label' => 'Nederlands',
+                'content' => function ($model) {
+                    return Html::beginForm(['word/update', 'id' => $model->id], 'post') .
+                        Html::hiddenInput(Yii::$app->request->csrfParam, Yii::$app->request->getCsrfToken()) .
+                        Html::hiddenInput('returnUrl', 'list-untranslated') .
+                        Html::textInput('Word[dutch]', $model->dutch, [
+                            'class' => 'form-control',
+                            'style' => 'min-width: 180px;'
+                        ]) .
+                        Html::submitButton('Opslaan', ['class' => 'btn btn-sm btn-success', 'style' => 'margin-top: 6px;']) .
+                        Html::endForm();
+                },
+            ],
             [
                 'attribute' => 'created_at',
                 'format' => ['datetime', 'php:d-m-Y H:i:s']
