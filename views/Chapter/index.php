@@ -30,9 +30,18 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
-            'number',
+            [
+                'attribute' => 'number',
+                'format' => 'raw',
+                'value' => function ($model) {
+                        return Html::a(
+                            $model->number,
+                            Url::to(['word/index-by-chapter', 'chapter_id' => $model->id])
+                        );
+                    },
+            ],
             'name',
-            'description:ntext',            
+            'description:ntext',
             [
                 'attribute' => 'created_at',
                 'format' => ['datetime', 'php:d-m-Y H:i:s']
@@ -44,8 +53,8 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'class' => ActionColumn::class,
                 'urlCreator' => function ($action, Chapter $model, $key, $index, $column) {
-                    return Url::toRoute([$action, 'id' => $model->id]);
-                 }
+                        return Url::toRoute([$action, 'id' => $model->id]);
+                    }
             ],
         ],
     ]); ?>
