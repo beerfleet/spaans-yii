@@ -12,10 +12,15 @@ use yii\grid\GridView;
 
 $this->title = 'Woorden';
 $this->params['breadcrumbs'][] = $this->title;
+$this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="word-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
+
+    <?php if (isset($chapter_id)) : ?>
+        <h2>Hoofdstuk ID: <?= Html::encode($chapter_id) ?></h2>        
+    <?php endif; ?>
 
     <p>
         <?= Html::a('Nieuw Woord', ['create'], ['class' => 'btn btn-success']) ?>

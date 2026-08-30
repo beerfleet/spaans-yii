@@ -101,4 +101,41 @@ class WordSearch extends Word
 
         return $dataProvider;
     }
+
+    /**
+     * Creates data provider instance with search query applied for a specific chapter
+     *
+     * @param int $chapter_id Chapter ID
+     * @param array $params
+     * @param string|null $formName Form name to be used into `->load()` method.
+     *
+     * @return ActiveDataProvider
+     */
+    public function searchByChapter($chapter_id, $params, $formName = null)
+    {
+        $query = Word::find()->where(['chapter_id' => $chapter_id]);
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);
+
+        $this->load($params, $formName);
+
+        if (!$this->validate()) {
+            return $dataProvider;
+        }
+
+        // grid filtering conditions
+        $query->andFilterWhere([
+            'id' => $this->id,
+            'chapter_id' => $this->chapter_id,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ]);
+
+        $query->andFilterWhere(['like', 'dutch', $this->dutch])
+            ->andFilterWhere(['like', 'spanish', $this->spanish]);
+
+        return $dataProvider;
+    }
 }

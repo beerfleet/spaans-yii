@@ -48,6 +48,18 @@ class WordController extends Controller
         ]);
     }
 
+    public function actionIndexByChapter($chapter_id)
+    {
+        $searchModel = new WordSearch();
+        $dataProvider = $searchModel->searchByChapter($chapter_id,$this->request->queryParams);
+
+        return $this->render('index', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+            'chapter_id' => $chapter_id,
+        ]);
+    }
+
     /**
      * Displays a single Word model.
      * @param int $id ID
