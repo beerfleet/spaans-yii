@@ -16,11 +16,14 @@ $chapters = Chapter::find()->all();
 // Maak een array voor de hoofdstukken
 $chapterItems = array_map(function ($chapter) {
     return [
-        'label' => Html::a("Hoofdstuk " . $chapter->number, Url::to(['word/index-by-chapter', 'chapter_id' => $chapter->id])),
-        'url' => '#', // URL is niet nodig omdat het al een link is
-        'encode' => false, // Voer HTML-code niet uit
+        'label' => "Hoofdstuk " . $chapter->number,
+        'url' => ['word/index-by-chapter', 'chapter_id' => $chapter->id],
+        'linkOptions' => ['class' => 'dropdown-item'],
     ];
 }, $chapters);
+
+// Define the separator
+$separator = ['label' => '<div class="dropdown-divider"></div>', 'encode' => false];
 
 $items = [
     [
@@ -39,8 +42,10 @@ $items = [
         'label' => 'Hoofdstukken',
         'items' => [
             ['label' => 'Lijst', 'url' => ['/hoofdstuk']],
-            ['label' => 'Nieuw hoofdstuk', 'url' => ['/chapter/create']],
+            $separator,
             ...$chapterItems,
+            $separator,
+            ['label' => 'Nieuw hoofdstuk', 'url' => ['/chapter/create']],
         ],
     ],
     [
