@@ -46,6 +46,13 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => ['datetime', 'php:d-m-Y H:i:s']
             ],
             [
+                'attribute' => 'Aantal woorden',
+                'format' => 'raw',
+                'value' => function($model) {
+                    return $model->countWordsOfChapter($model->id);
+                },
+            ],
+            [
                 'class' => ActionColumn::class,
                 'urlCreator' => function ($action, Chapter $model, $key, $index, $column) {
                         return Url::toRoute([$action, 'id' => $model->id]);

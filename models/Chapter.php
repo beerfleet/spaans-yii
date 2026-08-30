@@ -95,4 +95,8 @@ class Chapter extends ActiveRecord
         );
     }
 
+    public function countWordsOfChapter($chapter_id) {
+        return $this->getWords()->where(['chapter_id' => $chapter_id])->count();
+    }
+
 }
