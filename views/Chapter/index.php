@@ -28,7 +28,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'filterModel' => $searchModel,
         'summary' => 'Toont {begin}-{end} van de {count} items.',
         'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
+            // ['class' => 'yii\grid\SerialColumn'],
 
             [ // nummer kolom wordt een link attribuut
                 'attribute' => 'number',
