@@ -30,15 +30,10 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
-            [
+            [ // nummer kolom wordt een link attribuut
                 'attribute' => 'number',
                 'format' => 'raw',
-                'value' => function ($model) {
-                        return Html::a(
-                            $model->number,
-                            Url::to(['word/index-by-chapter', 'chapter_id' => $model->id])
-                        );
-                    },
+                'value' => 'numberLink', // Chapter.getNumberLink() call
             ],
             'name',
             'description:ntext',
@@ -58,6 +53,5 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
         ],
     ]); ?>
-
 
 </div>

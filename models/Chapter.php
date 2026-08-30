@@ -5,6 +5,8 @@ namespace app\models;
 use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
+use Yii\helpers\Html;
+use Yii\helpers\Url;
 
 /**
  * This is the model class for table "chapter".
@@ -84,6 +86,14 @@ class Chapter extends ActiveRecord
     public function getWords()
     {
         return $this->hasMany(Word::class, ['chapter_id' => 'id']);
+    }
+
+    public function getNumberLink()
+    {
+        return Html::a(
+            $this->number,
+            Url::to(['word/index-by-chapter', 'chapter_id' => $this->id])
+        );
     }
 
 }
