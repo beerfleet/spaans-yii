@@ -38,7 +38,6 @@ class Chapter extends ActiveRecord
     {
         return [
             [['description'], 'default', 'value' => null],
-            //[['name', 'created_at', 'updated_at'], 'required'],
             [['name'], 'required'],
             [['number'], 'integer'],
             [['number'], 'unique'],

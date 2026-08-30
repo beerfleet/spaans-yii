@@ -7,6 +7,20 @@ declare(strict_types=1);
 use yii\bootstrap5\Nav;
 use yii\bootstrap5\NavBar;
 use yii\helpers\Html;
+use yii\helpers\Url;
+
+use app\models\Chapter;
+
+$chapters = Chapter::find()->all();
+
+// Maak een array voor de hoofdstukken
+$chapterItems = array_map(function ($chapter) {
+    return [
+        'label' => Html::a("Hoofdstuk " . $chapter->number, Url::to(['word/index-by-chapter', 'chapter_id' => $chapter->id])),
+        'url' => '#', // URL is niet nodig omdat het al een link is
+        'encode' => false, // Voer HTML-code niet uit
+    ];
+}, $chapters);
 
 $items = [
     [
@@ -26,6 +40,7 @@ $items = [
         'items' => [
             ['label' => 'Lijst', 'url' => ['/hoofdstuk']],
             ['label' => 'Nieuw hoofdstuk', 'url' => ['/chapter/create']],
+            ...$chapterItems,
         ],
     ],
     [
@@ -38,14 +53,14 @@ $items = [
         ],
     ],
     [
-        'label'=> 'Oefenen',
+        'label' => 'Oefenen',
         'url' => ['/oefenen'],
     ],
-/*     [
-        'label' => 'Login',
-        'url' => ['/site/login'],
-        'visible' => Yii::$app->user->isGuest,
-    ], */
+    /*     [
+            'label' => 'Login',
+            'url' => ['/site/login'],
+            'visible' => Yii::$app->user->isGuest,
+        ], */
     [
         'label' => 'Logout (' . Html::encode(Yii::$app->user->identity?->username ?? '') . ')',
         'url' => ['/site/logout'],
