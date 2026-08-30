@@ -36,7 +36,7 @@ class Word extends ActiveRecord
     public function rules()
     {
         $rules = [
-            [['chapter_id', 'spanish', 'dutch'], 'required'],
+            [['chapter_id', 'spanish', 'dutch'], 'required', 'message' => 'Het veld {attribute} is verplicht'],
             [['chapter_id', 'created_at', 'updated_at'], 'integer'],
             [['dutch', 'spanish'], 'string', 'max' => 255],
             [['chapter_id'], 'exist', 'skipOnError' => true, 'targetClass' => Chapter::class, 'targetAttribute' => ['chapter_id' => 'id']],

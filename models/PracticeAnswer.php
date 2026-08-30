@@ -11,7 +11,7 @@ class PracticeAnswer extends Model
     public function rules(): array
     {
         return [
-            ['answer', 'required'],
+            ['answer', 'required', 'message' => 'Het veld {attribute} is verplicht.'],
             ['answer', 'string', 'max' => 255],
         ];
     }

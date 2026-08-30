@@ -38,9 +38,9 @@ class Chapter extends ActiveRecord
     {
         return [
             [['description'], 'default', 'value' => null],
-            [['name'], 'required'],
-            [['number'], 'integer'],
-            [['number'], 'unique'],
+            [['name'], 'required', 'message' => 'Het veld {attribute} is verplicht.'],
+            [['number'], 'integer', 'message' => 'Het veld {attribute} moet een getal zijn.'],
+            [['number'], 'unique', 'message' => 'Hoofdstuk nummer bestaat al.'],
             [['description'], 'string'],
             [['created_at', 'updated_at'], 'integer'],
             [['name'], 'string', 'max' => 255],
