@@ -51,12 +51,15 @@ class WordController extends Controller
     public function actionIndexByChapter($chapter_id)
     {
         $searchModel = new WordSearch();
-        $dataProvider = $searchModel->searchByChapter($chapter_id,$this->request->queryParams);
+        $dataProvider = $searchModel->searchByChapter($chapter_id, $this->request->queryParams);
+        
+        $chapter_name = $searchModel->getChapterName($chapter_id);
 
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
             'chapter_id' => $chapter_id,
+            'chapter_name' => $chapter_name,
         ]);
     }
 
@@ -73,8 +76,9 @@ class WordController extends Controller
         ]);
     }
 
-    public function actionListUntranslated() {
-        
+    public function actionListUntranslated()
+    {
+
         $searchModel = new WordSearch();
         $dataProvider = $searchModel->searchUntranslated($this->request->queryParams);
 

@@ -19,7 +19,8 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?php if (isset($chapter_id)) : ?>
-        <h2>Hoofdstuk ID: <?= Html::encode($chapter_id) ?></h2>        
+        <h2>Hoofdstuk ID: <?= Html::encode($chapter_id) ?></h2>
+        <h3>Hoofdstuk titel: <?= Html::encode($chapter_name) ?></h3>
     <?php endif; ?>
 
     <p>

@@ -138,4 +138,9 @@ class WordSearch extends Word
 
         return $dataProvider;
     }
+
+    public function getChapterName($chapter_id) {
+        $chapter = Chapter::findOne($chapter_id);
+        return $chapter ? $chapter->name : null;
+    }
 }
