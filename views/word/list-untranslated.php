@@ -26,7 +26,11 @@ $this->params['breadcrumbs'][] = $this->title;
             // ['class' => 'yii\grid\SerialColumn'],
 
             'id',
-            'chapter_id',
+            [ // nummer kolom wordt een link attribuut
+                'attribute' => 'number',
+                'format' => 'raw',
+                'value' => 'chapterNumber', // Chapter.getNumberLink() call
+            ],
             'spanish',
             [
                 'attribute' => 'dutch',

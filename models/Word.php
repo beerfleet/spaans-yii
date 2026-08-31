@@ -106,4 +106,9 @@ class Word extends ActiveRecord
         return parent::validate($attributeNames, $clearErrors);
     }
 
+    public function getChapterNumber()
+    {
+        return $this->chapter ? $this->chapter->number : null;
+    }
+
 }
