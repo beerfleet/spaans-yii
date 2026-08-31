@@ -22,7 +22,7 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'updated_at')->textInput() ?> -->
 
-    <div class="form-group">
+    <div class="form-group mt-3">
         <?= Html::submitButton('Opslaan', ['class' => 'btn btn-success']) ?>
     </div>
 

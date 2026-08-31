@@ -24,7 +24,7 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'dutch')->textInput(['maxlength' => true])->label('Nederlands') ?>
 
-    <div class="form-group">
+    <div class="form-group mt-3">
         <?= Html::submitButton('Opslaan', ['class' => 'btn btn-success']) ?>
     </div>
 
