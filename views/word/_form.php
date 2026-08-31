@@ -13,7 +13,10 @@ use yii\widgets\ActiveForm;
     <?php $form = ActiveForm::begin(); ?>
 
     <?= $form->field($model, 'chapter_id')->dropDownList(
-        \app\models\Chapter::find()->select(['id', 'name'])->indexBy('id')->column(),
+        \app\models\Chapter::find()
+            ->select(['CONCAT(number, " - ", name) AS chapter_label'])
+            ->indexBy('id')
+            ->column(),
         ['prompt' => 'Kies een hoofdstuk']
     )->label("Hoofdstuk") ?>
 
