@@ -23,6 +23,8 @@ class PracticeController extends Controller
             $wordIds = Word::find()
                 ->select('id')
                 ->where(['chapter_id' => $model->chapters])
+                ->andWhere(['not', ['dutch' => null]])
+                ->andWhere(['not', ['dutch' => '']])
                 ->column();
 
             shuffle($wordIds);
