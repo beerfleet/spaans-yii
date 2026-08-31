@@ -87,12 +87,17 @@ class PracticeController extends Controller
             $answerModel->load($this->request->post())
             && $answerModel->validate()
         ) {
-            $correctAnswer = $practice['nl_to_sp']
+            $correctAnswers = array_map('trim', explode(',', $practice['nl_to_sp']
                 ? $word->spanish
-                : $word->dutch;
+                : $word->dutch));
 
-            $isCorrect = mb_strtolower(trim($answerModel->answer))
-                === mb_strtolower(trim($correctAnswer));
+            $isCorrect = false;
+            foreach ($correctAnswers as $correctAnswer) {
+                if (mb_strtolower(trim($answerModel->answer)) === mb_strtolower(trim($correctAnswer))) {
+                    $isCorrect = true;
+                    break;
+                }
+            }
 
             if ($isCorrect) {
                 $practice['correct']++;

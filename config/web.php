@@ -51,6 +51,8 @@ $config = [
                 'woord/wis/<id:\d+>' => 'word/delete',
                 'woord/onvertaald' => 'word/list-untranslated',
                 'oefenen' => 'practice/start',
+                'oefenen/oefening' => 'practice/practice',
+                'oefenen/resultaat' => 'practice/result',
                 
             ],
         ],
