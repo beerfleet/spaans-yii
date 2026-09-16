@@ -37,7 +37,11 @@ $this->params['breadcrumbs'][] = $this->title;
             // ['class' => 'yii\grid\SerialColumn'],
 
             // 'id',
-            'chapter_id',
+            [
+                'attribute' => 'chapter_id',
+                'value' => 'chapter.name', // Display the chapter name instead of ID
+                'label' => 'Hoofdstuk', // Label for the column
+            ],
             'spanish',
             'dutch',
             [
