@@ -9,6 +9,8 @@ use yii\grid\GridView;
 /** @var yii\web\View $this */
 /** @var app\models\WordSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
+/** @var int $chapter_id */
+/** @var string $chapter_name */
 
 $this->title = 'Woorden';
 $this->params['breadcrumbs'][] = $this->title;
