@@ -11,11 +11,11 @@ use yii\widgets\ActiveForm;
 <div class="chapter-form">
 
     <?php $form = ActiveForm::begin(); ?>
-    
-    <?= $form->field($model, 'number')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
-
+    
+    <?= $form->field($model, 'number')->textInput(['maxlength' => true]) ?>
+    
     <?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
 
 <!--     <?= $form->field($model, 'created_at')->textInput() ?>
