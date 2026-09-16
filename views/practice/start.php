@@ -15,7 +15,7 @@ $this->params['breadcrumbs'][] = $this->title;
 $chapterOptions = [];
 foreach ($chapters as $chapter) {
     $chapterOptions[$chapter->id] = sprintf(
-        'Hoofdstuk %s: %s',
+        '%s: %s',
         $chapter->number,
         $chapter->name,
     );

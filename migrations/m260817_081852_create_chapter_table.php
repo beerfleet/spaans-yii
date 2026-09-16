@@ -14,7 +14,7 @@ class m260817_081852_create_chapter_table extends Migration
     {
         $this->createTable('{{%chapter}}', [
             'id' => $this->primaryKey(),
-            'number' => $this->integer()->unique(),
+            'number' => $this->integer(),
             'name' => $this->string()->notNull(),
             'description' => $this->text(),
             'created_at' => $this->integer()->notNull(),
