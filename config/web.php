@@ -17,6 +17,22 @@ $config = [
                 'viewPath' => '@app/mail',
             ],
         ],
+        'definitions' => [
+            \yii\widgets\LinkPager::class => \yii\bootstrap5\LinkPager::class,
+            'yii\bootstrap5\LinkPager' => [
+                'firstPageLabel' => 'Eerste',
+                'lastPageLabel' => 'Laatste',
+                'options' => ['class' => 'pagination pagination-primary mg-sm-b-0'],
+                'linkContainerOptions' => ['class' => 'page-item'],
+                'linkOptions' => ['class' => 'page-link'],
+                'disabledListItemSubTagOptions' => ['tag' => 'a', 'class' => 'page-link'],
+                'activePageCssClass' => 'active',
+                'disabledPageCssClass' => 'disabled',
+                'prevPageLabel' => 'Vorige',
+                'nextPageLabel' => 'Volgende',
+                'maxButtonCount' => 5,
+            ],
+        ],
     ],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
