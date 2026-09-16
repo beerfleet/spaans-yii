@@ -16,7 +16,7 @@ $chapters = Chapter::find()->all();
 // Maak een array voor de hoofdstukken
 $chapterItems = array_map(function ($chapter) {
     return [
-        'label' => "Hoofdstuk " . $chapter->number,
+        'label' => $chapter->name . " - " . $chapter->id,
         'url' => ['word/index-by-chapter', 'chapter_id' => $chapter->id],
         'linkOptions' => ['class' => 'dropdown-item'],
     ];
