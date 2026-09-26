@@ -82,9 +82,10 @@ $items = [
     <?php NavBar::begin(
         [
             //'brandLabel' => Yii::$app->name,
-            'brandLabel' => Yii::$app->params['appName'],
+            'brandLabel' => '<span class="brand-flag" aria-hidden="true">🇪🇸</span> ' . Html::encode(Yii::$app->params['appName']),
             'brandUrl' => Yii::$app->homeUrl,
-            'options' => ['class' => 'navbar-expand-md navbar-dark bg-dark fixed-top']
+            'options' => ['class' => 'navbar-expand-md fixed-top app-navbar'],
+            'brandOptions' => ['class' => 'navbar-brand app-brand'],
         ],
     ) ?>
     <?= Nav::widget(
@@ -98,7 +99,7 @@ $items = [
         '&#127769;',
         [
             'id' => 'theme-toggle',
-            'class' => 'btn btn-link nav-link fs-5',
+            'class' => 'btn nav-link fs-5 theme-toggle-btn',
             'aria-label' => 'Switch to dark mode',
         ],
     ) ?>

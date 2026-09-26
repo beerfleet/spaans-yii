@@ -37,6 +37,23 @@ if (!empty($this->params['meta_keywords'])) {
 }
 $this->registerLinkTag(
     [
+        'rel' => 'preconnect',
+        'href' => 'https://fonts.googleapis.com',
+    ],
+);
+$this->registerLinkTag(
+    [
+        'rel' => 'preconnect',
+        'href' => 'https://fonts.gstatic.com',
+        'crossorigin' => true,
+    ],
+);
+$this->registerCssFile(
+    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap',
+    ['position' => \yii\web\View::POS_HEAD],
+);
+$this->registerLinkTag(
+    [
         'rel' => 'icon',
         'type' => 'image/x-icon',
         'href' => Yii::getAlias('@web/favicon.ico'),
