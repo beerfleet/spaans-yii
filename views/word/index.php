@@ -14,7 +14,6 @@ use yii\grid\GridView;
 
 $this->title = 'Woorden';
 $this->params['breadcrumbs'][] = $this->title;
-$this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="word-index">
 

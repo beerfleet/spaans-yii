@@ -14,7 +14,7 @@ use app\models\Word;
 
 $stats = $stats ?? [];
 
-$this->title = 'Practice Stats';
+$this->title = 'Statistieken';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 

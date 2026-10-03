@@ -21,8 +21,6 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a('Nieuw hoofdstuk', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
-
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
@@ -35,7 +33,13 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'raw',
                 'value' => 'numberLink', // Chapter.getNumberLink() call
             ],
-            'name',
+            [
+                'attribute' => 'name',
+                'format' => 'raw',
+                'value' => function ($model) {
+                    return Html::a($model->name, ['word/index-by-chapter', 'chapter_id' => $model->id], ['class' => 'btn btn-primary rounded-pill']);
+                },
+            ],
             'description:ntext',
             [
                 'attribute' => 'created_at',
@@ -48,15 +52,15 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'attribute' => 'Aantal woorden',
                 'format' => 'raw',
-                'value' => function($model) {
+                'value' => function ($model) {
                     return $model->countWordsOfChapter($model->id);
                 },
             ],
             [
                 'class' => ActionColumn::class,
                 'urlCreator' => function ($action, Chapter $model, $key, $index, $column) {
-                        return Url::toRoute([$action, 'id' => $model->id]);
-                    }
+                    return Url::toRoute([$action, 'id' => $model->id]);
+                }
             ],
         ],
     ]); ?>
