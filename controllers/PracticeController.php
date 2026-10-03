@@ -9,6 +9,7 @@ use app\models\Word;
 use Yii;
 use yii\web\Controller;
 use yii\web\Response;
+use app\models\WordStatistic;
 
 class PracticeController extends Controller
 {
@@ -99,15 +100,30 @@ class PracticeController extends Controller
                 }
             }
 
+            $wordStatistic = WordStatistic::find()->where(['word_id' => $word->id])->one();
+
+            if ($wordStatistic === null) {
+                $wordStatistic = new WordStatistic([
+                    'word_id' => $word->id,
+                    'correct_count' => 0,
+                    'incorrect_count' => 0,
+                ]);
+            }
+
             if ($isCorrect) {
                 $practice['correct']++;
+                $wordStatistic->correct_count += 1;
+            } else {
+                 $wordStatistic->incorrect_count += 1;
             }
+
+            $wordStatistic->save(false);
 
             $session->setFlash(
                 $isCorrect ? 'success' : 'error',
                 $isCorrect
-                ? trim($answerModel->answer) . ' is correct!'
-                : trim($answerModel->answer) . ' is fout!'
+                    ? trim($answerModel->answer) . ' is correct!'
+                    : trim($answerModel->answer) . ' is fout!'
             );
 
             $practice['position']++;
