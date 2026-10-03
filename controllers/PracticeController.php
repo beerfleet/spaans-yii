@@ -13,6 +13,10 @@ use app\models\WordStatistic;
 
 class PracticeController extends Controller
 {
+    /**
+     * Action to start the practice session.
+     * @return string|Response
+     */
     public function actionStart(): string|Response
     {
         $model = new PracticeSelection();
@@ -54,6 +58,10 @@ class PracticeController extends Controller
         ]);
     }
 
+    /**
+     * Action to handle the practice session.
+     * @return string|Response
+     */
     public function actionPractice(): string|Response
     {
         $session = Yii::$app->session;
@@ -101,6 +109,13 @@ class PracticeController extends Controller
         ]);
     }
 
+    /**
+     * Private method to process the user's answer.
+     * @param Word $word
+     * @param PracticeAnswer $answerModel
+     * @param array &$practice
+     * @param \yii\web\Session $session
+     */
     private function processAnswer(Word $word, PracticeAnswer $answerModel, array &$practice, \yii\web\Session $session): void
     {
         $correctAnswers = array_map('trim', explode(',', $practice['nl_to_sp']
@@ -146,6 +161,10 @@ class PracticeController extends Controller
         $session->set('practice', $practice);
     }
 
+    /**
+     * Action to display the practice result.
+     * @return string|Response
+     */
     public function actionResult(): string|Response
     {
         $result = Yii::$app->session->get('practiceResult');
@@ -160,6 +179,9 @@ class PracticeController extends Controller
         ]);
     }
 
+    /**
+     * Action to display statistics.
+     */
     public function actionStats()
     {
         $stats = WordStatistic::find()->with('word')->all();
