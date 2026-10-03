@@ -59,7 +59,10 @@ $items = [
     ],
     [
         'label' => 'Oefenen',
-        'url' => ['/oefenen'],
+        'items' => [
+            ['label' => 'Oefenen', 'url' => ['/oefenen']],
+            ['label' => 'Statistieken', 'url' => ['/oefenen/statistieken']],
+        ],
     ],
     /*     [
             'label' => 'Login',

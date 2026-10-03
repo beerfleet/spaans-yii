@@ -15,8 +15,13 @@ class WordStatistic extends ActiveRecord
     public function rules()
     {
         return [
-            [['word_id', 'correct_count', 'incorrect_count'], 'integer'],
+            [['word_id', 'correct_count', 'incorrect_count', 'nl_to_sp'], 'integer'],
             [['word_id'], 'exist', 'skipOnError' => true, 'targetClass' => Word::class, 'targetAttribute' => ['word_id' => 'id']],
         ];
+    }
+
+    public function getWord()
+    {
+        return $this->hasOne(Word::class, ['id' => 'word_id']);
     }
 }

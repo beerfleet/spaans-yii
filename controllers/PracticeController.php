@@ -88,47 +88,7 @@ class PracticeController extends Controller
             $answerModel->load($this->request->post())
             && $answerModel->validate()
         ) {
-            $correctAnswers = array_map('trim', explode(',', $practice['nl_to_sp']
-                ? $word->spanish
-                : $word->dutch));
-
-            $isCorrect = false;
-            foreach ($correctAnswers as $correctAnswer) {
-                if (mb_strtolower(trim($answerModel->answer)) === mb_strtolower(trim($correctAnswer))) {
-                    $isCorrect = true;
-                    break;
-                }
-            }
-
-            $wordStatistic = WordStatistic::find()->where(['word_id' => $word->id])->one();
-
-            if ($wordStatistic === null) {
-                $wordStatistic = new WordStatistic([
-                    'word_id' => $word->id,
-                    'correct_count' => 0,
-                    'incorrect_count' => 0,
-                ]);
-            }
-
-            if ($isCorrect) {
-                $practice['correct']++;
-                $wordStatistic->correct_count += 1;
-            } else {
-                 $wordStatistic->incorrect_count += 1;
-            }
-
-            $wordStatistic->save(false);
-
-            $session->setFlash(
-                $isCorrect ? 'success' : 'error',
-                $isCorrect
-                    ? trim($answerModel->answer) . ' is correct!'
-                    : trim($answerModel->answer) . ' is fout!'
-            );
-
-            $practice['position']++;
-            $session->set('practice', $practice);
-
+            $this->processAnswer($word, $answerModel, $practice, $session);
             return $this->redirect(['practice']);
         }
 
@@ -139,6 +99,51 @@ class PracticeController extends Controller
             'total' => count($wordIds),
             'answerModel' => $answerModel,
         ]);
+    }
+
+    private function processAnswer(Word $word, PracticeAnswer $answerModel, array &$practice, \yii\web\Session $session): void
+    {
+        $correctAnswers = array_map('trim', explode(',', $practice['nl_to_sp']
+            ? $word->spanish
+            : $word->dutch));
+
+        $isCorrect = false;
+        foreach ($correctAnswers as $correctAnswer) {
+            if (mb_strtolower(trim($answerModel->answer)) === mb_strtolower(trim($correctAnswer))) {
+                $isCorrect = true;
+                break;
+            }
+        }
+
+        $wordStatistic = WordStatistic::find()->where(['word_id' => $word->id, 'nl_to_sp' => $practice['nl_to_sp']])->one();
+
+        if ($wordStatistic === null) {
+            $wordStatistic = new WordStatistic([
+                'word_id' => $word->id,
+                'correct_count' => 0,
+                'incorrect_count' => 0,
+                'nl_to_sp' => $practice['nl_to_sp'],
+            ]);
+        }
+
+        if ($isCorrect) {
+            $practice['correct']++;
+            $wordStatistic->correct_count += 1;
+        } else {
+            $wordStatistic->incorrect_count += 1;
+        }
+
+        $wordStatistic->save(false);
+
+        $session->setFlash(
+            $isCorrect ? 'success' : 'error',
+            $isCorrect
+                ? trim($answerModel->answer) . ' is correct!'
+                : trim($answerModel->answer) . ' is fout!'
+        );
+
+        $practice['position']++;
+        $session->set('practice', $practice);
     }
 
     public function actionResult(): string|Response
@@ -152,6 +157,14 @@ class PracticeController extends Controller
         return $this->render('result', [
             'correct' => $result['correct'],
             'total' => $result['total'],
+        ]);
+    }
+
+    public function actionStats()
+    {
+        $stats = WordStatistic::find()->with('word')->all();
+        return $this->render('stats', [
+            'stats' => $stats,
         ]);
     }
 }

@@ -111,4 +111,14 @@ class Word extends ActiveRecord
         return $this->chapter ? $this->chapter->number : null;
     }
 
+    public function getWordStatistic()
+    {
+        return $this->hasOne(WordStatistic::class, ['word_id' => 'id']);
+    }
+
+    public function getWordBasedOnDirection(bool $nl_to_sp = false)
+    {
+        return $nl_to_sp ? $this->dutch : $this->spanish;
+    }
+
 }

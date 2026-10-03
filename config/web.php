@@ -69,6 +69,7 @@ $config = [
                 'oefenen' => 'practice/start',
                 'oefenen/oefening' => 'practice/practice',
                 'oefenen/resultaat' => 'practice/result',
+                'oefenen/statistieken' => 'practice/stats'
                 
             ],
         ],

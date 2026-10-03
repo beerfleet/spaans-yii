@@ -17,6 +17,7 @@ class m261003_120736_create_word_statistic_table extends Migration
             'word_id' => $this->integer()->notNull(),
             'correct_count' => $this->integer()->defaultValue(0),
             'incorrect_count' => $this->integer()->defaultValue(0),
+            'nl_to_sp' => $this->boolean()->notNull()->defaultValue(false),
         ]);
 
         $this->createIndex(
