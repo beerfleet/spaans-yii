@@ -120,6 +120,7 @@ class WordController extends Controller
         $model->scenario = 'bulkCreate'; // Set the scenario to bulkCreate
 
         if ($model->load($this->request->post()) && $model->validate()) {
+            $chapterId = $model->chapter_id === '' ? null : $model->chapter_id;
             $words = preg_split('/[\s,;]+/', $model->spanish, -1, PREG_SPLIT_NO_EMPTY);
 
             Yii::debug('Words to be saved: ' . print_r($words, true));
@@ -130,7 +131,7 @@ class WordController extends Controller
                     $newWord = new Word();
                     $newWord->scenario = "bulkCreate";
                     $newWord->spanish = $word;
-                    $newWord->chapter_id = $model->chapter_id;
+                    $newWord->chapter_id = $chapterId;
                     $newWord->created_at = strtotime(date('Y-m-d H:i:s'));
                     $newWord->updated_at = strtotime(date('Y-m-d H:i:s'));
 

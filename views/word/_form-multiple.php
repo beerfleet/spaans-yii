@@ -17,11 +17,11 @@ use yii\widgets\ActiveForm;
             ->select(['CONCAT(number, " - ", name) AS chapter_label'])
             ->indexBy('id')
             ->column(),
-        ['prompt' => 'Kies een hoofdstuk']
-    )->label("Hoofdstuk") ?>    
+        ['prompt' => '— Geen hoofdstuk (later bepalen) —']
+    )->label("Hoofdstuk (optioneel)")->hint('Laat leeg als de woorden (nog) niet tot hetzelfde hoofdstuk behoren. Je kunt het hoofdstuk later per woord invullen.') ?>    
 
     <!-- <?= $form->field($model, 'spanish')->textInput(['maxlength' => true])->label('Spaans') ?>     -->
-     <?= $form->field($model, 'spanish')->textarea(['maxlength' => true])->label('Spaans') ?>
+     <?= $form->field($model, 'spanish')->textarea(['maxlength' => true])->label('Spaans')->hint('Meerdere woorden scheiden met spatie, komma of puntkomma.') ?>
 
     <div class="form-group mt-3">
         <?= Html::submitButton('Opslaan', ['class' => 'btn btn-success']) ?>

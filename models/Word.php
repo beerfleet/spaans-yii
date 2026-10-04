@@ -11,7 +11,7 @@ use app\models\WordStatistic;
  * This is the model class for table "word".
  *
  * @property int $id
- * @property int $chapter_id
+ * @property int|null $chapter_id
  * @property string $dutch
  * @property string $spanish
  * @property int $created_at
@@ -36,21 +36,23 @@ class Word extends ActiveRecord
      */
     public function rules()
     {
-        $rules = [
-            [['chapter_id', 'spanish', 'dutch'], 'required', 'message' => 'Het veld {attribute} is verplicht'],
+        if ($this->scenario === 'bulkCreate') {
+            return [
+                [['spanish'], 'required', 'message' => 'Het veld {attribute} is verplicht'],
+                [['chapter_id'], 'default', 'value' => null],
+                [['chapter_id', 'created_at', 'updated_at'], 'integer'],
+                [['dutch', 'spanish'], 'string', 'max' => 255],
+                [['chapter_id'], 'exist', 'skipOnError' => true, 'targetClass' => Chapter::class, 'targetAttribute' => ['chapter_id' => 'id']],
+            ];
+        }
+
+        return [
+            [['spanish', 'dutch'], 'required', 'message' => 'Het veld {attribute} is verplicht'],
+            [['chapter_id'], 'default', 'value' => null],
             [['chapter_id', 'created_at', 'updated_at'], 'integer'],
             [['dutch', 'spanish'], 'string', 'max' => 255],
             [['chapter_id'], 'exist', 'skipOnError' => true, 'targetClass' => Chapter::class, 'targetAttribute' => ['chapter_id' => 'id']],
         ];
-
-        if ($this->scenario === 'bulkCreate') {
-            // Remove the required rule for 'dutch' in the bulk create scenario
-            $rules = array_filter($rules, function ($rule) {
-                return !in_array('dutch', $rule);
-            });
-        }
-
-        return $rules;
     }
 
     public function behaviors()
@@ -105,6 +107,15 @@ class Word extends ActiveRecord
         Yii::debug('Current scenario: ' . $this->scenario);
 
         return parent::validate($attributeNames, $clearErrors);
+    }
+
+    public function beforeValidate()
+    {
+        if ($this->chapter_id === '' || $this->chapter_id === 0 || $this->chapter_id === '0') {
+            $this->chapter_id = null;
+        }
+
+        return parent::beforeValidate();
     }
 
     public function getChapterNumber()

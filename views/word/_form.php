@@ -17,8 +17,8 @@ use yii\widgets\ActiveForm;
             ->select(['CONCAT(number, " - ", name) AS chapter_label'])
             ->indexBy('id')
             ->column(),
-        ['prompt' => 'Kies een hoofdstuk']
-    )->label("Hoofdstuk") ?>
+        ['prompt' => '— Geen hoofdstuk (later bepalen) —']
+    )->label("Hoofdstuk (optioneel)") ?>
 
     <?= $form->field($model, 'spanish')->textInput(['maxlength' => true])->label('Spaans') ?>
 
