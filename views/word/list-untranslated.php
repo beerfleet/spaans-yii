@@ -1,5 +1,6 @@
 <?php
 
+use app\models\Chapter;
 use app\models\Word;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -10,7 +11,7 @@ use yii\grid\GridView;
 /** @var app\models\WordSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = 'Woorden';
+$this->title = 'Onvertaalde Woorden';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="word-index">
@@ -26,10 +27,29 @@ $this->params['breadcrumbs'][] = $this->title;
             // ['class' => 'yii\grid\SerialColumn'],
 
             'id',
-            [ // nummer kolom wordt een link attribuut
-                'attribute' => 'number',
+            [
+                'attribute' => 'chapter_id',
+                'label' => 'Hoofdstuk',
                 'format' => 'raw',
-                'value' => 'chapterNumber', // Chapter.getNumberLink() call
+                'value' => function ($model) {
+                    /** @var Word $model */
+                    if (!$model->chapter) {
+                        return '<span class="text-muted">—</span>';
+                    }
+                    return Html::a(
+                        Html::encode($model->chapterLabel),
+                        Url::to(['word/index-by-chapter', 'chapter_id' => $model->chapter_id])
+                    );
+                },
+                'filter' => Html::activeDropDownList(
+                    $searchModel,
+                    'chapter_id',
+                    Chapter::find()
+                        ->select(['CONCAT(number, " - ", name) AS chapter_label'])
+                        ->indexBy('id')
+                        ->column(),
+                    ['prompt' => 'Alle', 'class' => 'form-control']
+                ),
             ],
             'spanish',
             [

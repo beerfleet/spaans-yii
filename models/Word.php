@@ -123,6 +123,22 @@ class Word extends ActiveRecord
         return $this->chapter ? $this->chapter->number : null;
     }
 
+    public function getChapterLabel()
+    {
+        if (!$this->chapter) {
+            return null;
+        }
+
+        $number = $this->chapter->number;
+        $name = $this->chapter->name;
+
+        if ($number === null || $number === '') {
+            return $name;
+        }
+
+        return $number . ' - ' . $name;
+    }
+
     public function getWordStatistic()
     {
         return $this->hasOne(WordStatistic::class, ['word_id' => 'id']);
