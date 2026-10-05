@@ -32,20 +32,13 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attribute' => 'name',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    return Html::a(Html::encode($model->name), ['word/index-by-chapter', 'chapter_id' => $model->id], ['class' => 'btn btn-primary rounded-pill']);
+                    return Html::a(Html::encode($model->name), ['word/index-by-chapter', 'chapter_id' => $model->id], ['class' => 'fw-bold']);
                 },
             ],
             'description:ntext',
             [
-                'attribute' => 'created_at',
-                'format' => ['datetime', 'php:d-m-Y H:i:s']
-            ],
-            [
-                'attribute' => 'updated_at',
-                'format' => ['datetime', 'php:d-m-Y H:i:s']
-            ],
-            [
                 'attribute' => 'Aantal woorden',
+                'filter' => false,
                 'format' => 'raw',
                 'value' => function ($model) {
                     return $model->countWordsOfChapter($model->id);
