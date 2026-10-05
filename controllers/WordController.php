@@ -289,8 +289,9 @@ class WordController extends Controller
 
     /**
      * Parses bulk textarea input into a list of expressions.
-     * One expression per line; falls back to comma/semicolon split
-     * when the whole input is a single line (backwards compatible).
+     * Strictly one expression per line: commas and semicolons inside
+     * a line are content (e.g. "Hola, ¿cómo estás?" stays one record),
+     * so sentences survive bulk import.
      * @param string|null $text
      * @return string[]
      */
@@ -299,17 +300,11 @@ class WordController extends Controller
         if ($text === null || trim($text) === '') {
             return [];
         }
-        $text = str_replace(["\r\n", "\r"], "\n", $text);
-        if (strpos($text, "\n") !== false) {
-            $parts = explode("\n", $text);
-        } else {
-            // Single line: allow comma/semicolon separated words (old behaviour).
-            $parts = preg_split('/[,;]+/', $text, -1, PREG_SPLIT_NO_EMPTY);
-        }
+        $parts = explode("\n", str_replace(["\r\n", "\r"], "\n", $text));
         $result = [];
         foreach ($parts as $part) {
             $part = trim($part);
-            // Strip stray leading/trailing commas/semicolons from line mode.
+            // Strip stray leading/trailing separators, keep inner punctuation.
             $part = trim($part, ",;");
             $part = trim(preg_replace('/\s+/', ' ', $part));
             if ($part !== '') {
