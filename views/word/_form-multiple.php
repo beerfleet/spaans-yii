@@ -37,6 +37,8 @@ if (is_array($preview)) {
 
     <?= $form->field($model, 'spanish')->textarea(['rows' => 8, 'placeholder' => "buenos días\nmuchas gracias\nhasta luego"])->label('Spaans')->hint('Eén uitdrukking per regel. Uitdrukkingen met spaties blijven bij elkaar. Eén regel met komma\'s of puntkomma\'s wordt nog gesplitst (oude invoer).') ?>
 
+    <?= $this->render('_accent-keys', ['inputIds' => ['word-spanish']]) ?>
+
     <?php if ($preview === null): ?>
         <div class="form-group mt-3">
             <?= Html::submitButton('Preview', ['class' => 'btn btn-primary', 'name' => 'preview', 'value' => '1']) ?>

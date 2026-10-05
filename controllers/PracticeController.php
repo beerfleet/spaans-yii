@@ -28,6 +28,7 @@ class PracticeController extends Controller
                     'class' => VerbFilter::class,
                     'actions' => [
                         'repeat' => ['POST'],
+                        'stop' => ['POST'],
                     ],
                 ],
             ]
@@ -294,6 +295,17 @@ class PracticeController extends Controller
 
         $practice['position']++;
         $session->set('practice', $practice);
+    }
+
+    /**
+     * Aborts the running practice session and forgets its progress.
+     * @return Response
+     */
+    public function actionStop(): Response
+    {
+        Yii::$app->session->remove('practice');
+        Yii::$app->session->setFlash('info', 'Oefening gestopt.');
+        return $this->redirect(['start']);
     }
 
     /**

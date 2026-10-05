@@ -34,5 +34,29 @@ class PracticeSelection extends Model
             'difficult_first' => 'Moeilijkste eerst',
         ];
     }
-    
+
+    /**
+     * {@inheritdoc}
+     * Normalizes raw POST values before mass assignment to the typed
+     * properties. Yii renders a hidden "" input for the chapters
+     * checkbox list, so submitting with no box checked would otherwise
+     * assign a string to array $chapters (TypeError). Same for a cleared
+     * max_words field ("" is mapped to 0 so the min-rule reports it).
+     */
+    public function load($data, $formName = null)
+    {
+        $scope = $formName ?? $this->formName();
+        if (isset($data[$scope]) && is_array($data[$scope])) {
+            if (array_key_exists('chapters', $data[$scope]) && !is_array($data[$scope]['chapters'])) {
+                $data[$scope]['chapters'] = $data[$scope]['chapters'] === '' || $data[$scope]['chapters'] === null
+                    ? []
+                    : [$data[$scope]['chapters']];
+            }
+            if (array_key_exists('max_words', $data[$scope]) && $data[$scope]['max_words'] === '') {
+                $data[$scope]['max_words'] = 0;
+            }
+        }
+
+        return parent::load($data, $formName);
+    }
 }

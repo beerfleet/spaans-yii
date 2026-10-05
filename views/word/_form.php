@@ -25,6 +25,8 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'dutch')->textInput(['maxlength' => true])->label('Nederlands') ?>
 
+    <?= $this->render('_accent-keys', ['inputIds' => ['word-spanish', 'word-dutch']]) ?>
+
     <div class="form-group mt-3">
         <?= Html::submitButton('Opslaan', ['class' => 'btn btn-success']) ?>
     </div>

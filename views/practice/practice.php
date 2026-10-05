@@ -56,11 +56,7 @@ $answerLabel = $nlToSp ? 'Spaans' : 'Nederlands';
             'lang' => $nlToSp ? 'es' : 'nl',
         ]) ?>
 
-    <div class="mb-3 accent-keys" role="group" aria-label="Spaanse tekens">
-        <?php foreach (['á', 'é', 'í', 'ó', 'ú', 'ü', 'ñ', '¡', '¿'] as $char): ?>
-            <button type="button" class="btn btn-outline-secondary btn-sm accent-key" data-char="<?= $char ?>"><?= $char ?></button>
-        <?php endforeach; ?>
-    </div>
+    <?= $this->render('/word/_accent-keys', ['inputIds' => ['practiceanswer-answer']]) ?>
 
     <div class="form-group">
         <?= Html::submitButton('Controleer', [
@@ -69,24 +65,11 @@ $answerLabel = $nlToSp ? 'Spaans' : 'Nederlands';
     </div>
 
     <?php ActiveForm::end(); ?>
-</div>
 
-<?php
-// Insert the character at the cursor position instead of appending it.
-$this->registerJs(<<<'JS'
-document.querySelectorAll('.accent-key').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-        var input = document.getElementById('practiceanswer-answer');
-        if (!input) {
-            return;
-        }
-        var start = input.selectionStart === null ? input.value.length : input.selectionStart;
-        var end = input.selectionEnd === null ? start : input.selectionEnd;
-        input.value = input.value.slice(0, start) + btn.dataset.char + input.value.slice(end);
-        input.focus();
-        var pos = start + btn.dataset.char.length;
-        input.setSelectionRange(pos, pos);
-    });
-});
-JS);
-?>
+    <?= Html::beginForm(['stop'], 'post', ['class' => 'mt-3']) ?>
+    <?= Html::submitButton('Stoppen', [
+        'class' => 'btn btn-outline-danger',
+        'data' => ['confirm' => 'Oefening afbreken? Je voortgang van deze sessie gaat verloren.'],
+    ]) ?>
+    <?= Html::endForm() ?>
+</div>
