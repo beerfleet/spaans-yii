@@ -11,12 +11,12 @@ use yii\helpers\Url;
 
 use app\models\Chapter;
 
-$chapters = Chapter::find()->all();
+$chapters = Chapter::find()->orderBy(['name' => SORT_ASC])->all();
 
-// Maak een array voor de hoofdstukken
+// Maak een array voor de lijsten
 $chapterItems = array_map(function ($chapter) {
     return [
-        'label' => $chapter->name . " - " . $chapter->number,
+        'label' => $chapter->name,
         'url' => ['word/index-by-chapter', 'chapter_id' => $chapter->id],
         'linkOptions' => ['class' => 'dropdown-item'],
     ];
@@ -39,13 +39,13 @@ $items = [
         'url' => ['/site/contact'],
     ], */
     [
-        'label' => 'Hoofdstukken',
+        'label' => 'Lijsten',
         'items' => [
             ['label' => 'Lijst', 'url' => ['/hoofdstuk']],
             $separator,
             ...$chapterItems,
             $separator,
-            ['label' => 'Nieuw hoofdstuk', 'url' => ['/chapter/create']],
+            ['label' => 'Nieuwe lijst', 'url' => ['/chapter/create']],
         ],
     ],
     [

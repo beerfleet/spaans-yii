@@ -4,6 +4,7 @@ use yii\helpers\Html;
 
 /** @var yii\web\View $this */
 /** @var app\models\Word $model */
+/** @var array|null $preview */
 
 $this->title = 'Nieuwe woorden';
 $this->params['breadcrumbs'][] = ['label' => 'Woorden', 'url' => ['index']];
@@ -15,6 +16,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= $this->render('_form-multiple', [
         'model' => $model,
+        'preview' => $preview ?? null,
     ]) ?>
 
 </div>

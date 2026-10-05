@@ -69,7 +69,7 @@ class Chapter extends ActiveRecord
         return [
             'id' => 'ID',
             'name' => 'Naam',
-            'number' => 'Hoofdstuk #',
+            'number' => 'Nummer (optioneel)',
             'description' => 'Omschrijving',
             'created_at' => 'Gemaakt Op',
             'updated_at' => 'Gewijzigd Op',

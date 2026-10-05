@@ -5,8 +5,8 @@ use yii\helpers\Html;
 /** @var yii\web\View $this */
 /** @var app\models\Chapter $model */
 
-$this->title = 'Nieuw hoofdstuk';
-$this->params['breadcrumbs'][] = ['label' => 'Hoofdstukken', 'url' => ['index']];
+$this->title = 'Nieuwe lijst';
+$this->params['breadcrumbs'][] = ['label' => 'Lijsten', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="chapter-create">

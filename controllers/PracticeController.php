@@ -21,40 +21,56 @@ class PracticeController extends Controller
     {
         $model = new PracticeSelection();
         $chapters = Chapter::find()
-            ->orderBy(['number' => SORT_ASC])
+            ->orderBy(['name' => SORT_ASC])
             ->all();
 
+        // Translatable words per list (for the counts next to each list).
+        // Untranslated words never practice, in any direction.
+        $counts = Word::findTranslatable()
+            ->select(['chapter_id', 'COUNT(*) AS n'])
+            ->groupBy(['chapter_id'])
+            ->indexBy('chapter_id')
+            ->column();
+        $translatableTotal = (int) Word::findTranslatable()->count();
+
         if ($model->load($this->request->post()) && $model->validate()) {
-            $wordIds = Word::find()
-                ->select('id')
-                ->where(['chapter_id' => $model->chapters])
-                ->andWhere(['not', ['dutch' => null]])
-                ->andWhere(['not', ['dutch' => '']])
-                ->column();
-
-            shuffle($wordIds);
-
-            if ($wordIds === []) {
-                $model->addError('chapters', 'Er zijn geen woorden gevonden.');
+            $useAll = (bool) $model->all_chapters;
+            if (!$useAll && empty($model->chapters)) {
+                $model->addError('chapters', 'Kies minimaal één lijst of vink “Alle woorden oefenen” aan.');
             } else {
-                $maxWords = max(1, (int) $model->max_words);
-                $selectedWordIds = array_map('intval', array_slice($wordIds, 0, $maxWords));
+                $query = Word::findTranslatable()->select('id');
+                if (!$useAll) {
+                    $query->andWhere(['chapter_id' => $model->chapters]);
+                }
 
-                Yii::$app->session->set('practice', [
-                    'chapters' => $model->chapters,
-                    'nl_to_sp' => $model->nl_to_sp,
-                    'word_ids' => $selectedWordIds,
-                    'position' => 0,
-                    'correct' => 0,
-                ]);
+                $wordIds = $query->column();
 
-                return $this->redirect(['practice']);
+                shuffle($wordIds);
+
+                if ($wordIds === []) {
+                    $model->addError('chapters', 'Er zijn geen (vertaalde) woorden gevonden voor deze keuze.');
+                } else {
+                    $maxWords = max(1, (int) $model->max_words);
+                    $selectedWordIds = array_map('intval', array_slice($wordIds, 0, $maxWords));
+
+                    Yii::$app->session->set('practice', [
+                        'chapters' => $model->chapters,
+                        'nl_to_sp' => $model->nl_to_sp,
+                        'word_ids' => $selectedWordIds,
+                        'position' => 0,
+                        'correct' => 0,
+                    ]);
+
+                    return $this->redirect(['practice']);
+                }
             }
         }
 
         return $this->render('start', [
             'model' => $model,
             'chapters' => $chapters,
+            'counts' => $counts,
+            'translatableTotal' => $translatableTotal,
         ]);
     }
 
@@ -106,6 +122,7 @@ class PracticeController extends Controller
             'progress' => $position + 1,
             'total' => count($wordIds),
             'answerModel' => $answerModel,
+            'meaningsCount' => $word->countPracticeMeanings((bool) $practice['nl_to_sp']),
         ]);
     }
 
@@ -118,13 +135,12 @@ class PracticeController extends Controller
      */
     private function processAnswer(Word $word, PracticeAnswer $answerModel, array &$practice, \yii\web\Session $session): void
     {
-        $correctAnswers = array_map('trim', explode(',', $practice['nl_to_sp']
-            ? $word->spanish
-            : $word->dutch));
+        $acceptedAnswers = $word->getPracticeAnswers((bool) $practice['nl_to_sp']);
+        $given = mb_strtolower(trim($answerModel->answer));
 
         $isCorrect = false;
-        foreach ($correctAnswers as $correctAnswer) {
-            if (mb_strtolower(trim($answerModel->answer)) === mb_strtolower(trim($correctAnswer))) {
+        foreach ($acceptedAnswers as $correctAnswer) {
+            if ($given === mb_strtolower(trim($correctAnswer))) {
                 $isCorrect = true;
                 break;
             }
@@ -154,7 +170,8 @@ class PracticeController extends Controller
             $isCorrect ? 'success' : 'error',
             $isCorrect
                 ? trim($answerModel->answer) . ' is correct!'
-                : trim($answerModel->answer) . ' is fout!'
+                : trim($answerModel->answer) . ' is fout! Mogelijk: ' . implode(', ', array_slice($acceptedAnswers, 0, 5))
+                    . (count($acceptedAnswers) > 5 ? ' …' : '')
         );
 
         $practice['position']++;

@@ -5,8 +5,8 @@ use yii\helpers\Html;
 /** @var yii\web\View $this */
 /** @var app\models\Chapter $model */
 
-$this->title = 'Wijzig hoofdstuk: ' . $model->name;
-$this->params['breadcrumbs'][] = ['label' => 'Hoofdstukken', 'url' => ['index']];
+$this->title = 'Wijzig lijst: ' . $model->name;
+$this->params['breadcrumbs'][] = ['label' => 'Lijsten', 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = 'Wijzig';
 ?>

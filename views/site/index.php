@@ -11,8 +11,8 @@ $this->params['meta_keywords'] = 'spaans, Nederlands, oefenen, woordenschat, lee
 // Define the navigation items as cards
 $navItems = [
     [
-        'title' => 'Hoofdstukken',
-        'description' => 'Bekijk beschikbare hoofdstukken of voeg een nieuw hoofdstuk toe aan je leerlijst.',
+        'title' => 'Lijsten',
+        'description' => 'Bekijk beschikbare lijsten of voeg een nieuwe lijst toe aan je leerlijst.',
         'icon' => '📚',
         'url' => ['/hoofdstuk'],
         'btn_text' => 'Bekijk lijst',

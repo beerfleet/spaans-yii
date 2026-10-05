@@ -26,6 +26,7 @@ class WordController extends Controller
                     'class' => VerbFilter::class,
                     'actions' => [
                         'delete' => ['POST'],
+                        'bulk-translate' => ['POST'],
                     ],
                 ],
             ]
@@ -111,7 +112,9 @@ class WordController extends Controller
     }
 
     /**
-     * Creates multiple Words and adds them to the database
+     * Creates multiple Words and adds them to the database.
+     * Line-based: one expression per line, so multi-word expressions stay intact.
+     * Two steps: preview first, then confirm & save.
      * @return string|\yii\web\Response
      */
     public function actionCreateMultiple()
@@ -119,38 +122,185 @@ class WordController extends Controller
         $model = new Word();
         $model->scenario = 'bulkCreate'; // Set the scenario to bulkCreate
 
+        $preview = null;
+
         if ($model->load($this->request->post()) && $model->validate()) {
             $chapterId = $model->chapter_id === '' ? null : $model->chapter_id;
-            $words = preg_split('/[\s,;]+/', $model->spanish, -1, PREG_SPLIT_NO_EMPTY);
+            $lines = self::parseBulkLines($model->spanish);
 
-            Yii::debug('Words to be saved: ' . print_r($words, true));
-
-            foreach ($words as $word) {
-                $word = trim($word);
-                if (!empty($word)) {
-                    $newWord = new Word();
-                    $newWord->scenario = "bulkCreate";
-                    $newWord->spanish = $word;
-                    $newWord->chapter_id = $chapterId;
-                    $newWord->created_at = strtotime(date('Y-m-d H:i:s'));
-                    $newWord->updated_at = strtotime(date('Y-m-d H:i:s'));
-
-                    // Check if the word is valid before saving
-                    if ($newWord->validate()) {
-                        $newWord->save();
-                        //Yii::debug('Word saved: ' . $newWord->spanish);
-                    } else {
-                        // Handle validation errors
-                        Yii::error('Failed to save word: ' . print_r($newWord->errors, true));
+            if (empty($lines)) {
+                $model->addError('spanish', 'Voer minimaal één woord in (één per regel).');
+            } else {
+                // Spanish alone is not unique: the same form can have different
+                // meanings (e.g. "camino": de weg / ik loop). So we only warn
+                // about duplicates / existing forms and let the user decide
+                // per row whether to add it anyway.
+                $seen = [];
+                $existingByForm = [];
+                $existingWords = Word::find()
+                    ->with('chapter')
+                    ->where(['spanish' => array_values(array_unique($lines))])
+                    ->all();
+                foreach ($existingWords as $existing) {
+                    $key = mb_strtolower(trim((string) $existing->spanish));
+                    $meaning = $existing->dutch !== null && trim((string) $existing->dutch) !== ''
+                        ? (string) $existing->dutch
+                        : '(nog onvertaald)';
+                    if ($existing->listLabel !== null) {
+                        $meaning .= ' [' . $existing->listLabel . ']';
                     }
+                    $existingByForm[$key][] = $meaning;
+                }
+
+                $preview = [];
+                foreach ($lines as $line) {
+                    $key = mb_strtolower($line);
+                    $status = 'new';
+                    if (isset($seen[$key])) {
+                        $status = 'duplicate';
+                    } elseif (isset($existingByForm[$key])) {
+                        $status = 'exists';
+                    }
+                    $seen[$key] = true;
+                    $preview[] = [
+                        'spanish' => $line,
+                        'status' => $status,
+                        'existing' => $existingByForm[$key] ?? [],
+                        'add' => $status === 'new',
+                    ];
+                }
+
+                // Confirm step: save checked rows.
+                if ($this->request->post('confirm') !== null) {
+                    $checked = $this->request->post('add', []);
+                    $saved = 0;
+                    $skipped = 0;
+                    $transaction = Yii::$app->db->beginTransaction();
+                    try {
+                        foreach ($preview as $i => $row) {
+                            $wantAdd = isset($checked[$i]);
+                            if (!$wantAdd) {
+                                $skipped++;
+                                continue;
+                            }
+                            $newWord = new Word();
+                            $newWord->scenario = 'bulkCreate';
+                            $newWord->spanish = $row['spanish'];
+                            $newWord->chapter_id = $chapterId;
+                            if ($newWord->save()) {
+                                $saved++;
+                            } else {
+                                Yii::error('Failed to save word: ' . print_r($newWord->errors, true));
+                                $skipped++;
+                            }
+                        }
+                        $transaction->commit();
+                    } catch (\Throwable $e) {
+                        $transaction->rollBack();
+                        throw $e;
+                    }
+
+                    $parts = [];
+                    if ($saved > 0) {
+                        $parts[] = $saved . ($saved === 1 ? ' woord toegevoegd' : ' woorden toegevoegd');
+                    }
+                    if ($skipped > 0) {
+                        $parts[] = $skipped . ' overgeslagen';
+                    }
+                    Yii::$app->session->setFlash(
+                        $saved > 0 ? 'success' : 'warning',
+                        $saved > 0
+                            ? implode(', ', $parts) . '.'
+                            : 'Niets toegevoegd. ' . implode(', ', $parts) . '.'
+                    );
+
+                    if ($chapterId !== null) {
+                        return $this->redirect(['list-untranslated', 'WordSearch[chapter_id]' => $chapterId]);
+                    }
+                    return $this->redirect(['list-untranslated']);
                 }
             }
-            return $this->redirect(['index']);
         }
 
         return $this->render('create-multiple', [
             'model' => $model,
+            'preview' => $preview,
         ]);
+    }
+
+    /**
+     * Parses bulk textarea input into a list of expressions.
+     * One expression per line; falls back to comma/semicolon split
+     * when the whole input is a single line (backwards compatible).
+     * @param string|null $text
+     * @return string[]
+     */
+    public static function parseBulkLines($text)
+    {
+        if ($text === null || trim($text) === '') {
+            return [];
+        }
+        $text = str_replace(["\r\n", "\r"], "\n", $text);
+        if (strpos($text, "\n") !== false) {
+            $parts = explode("\n", $text);
+        } else {
+            // Single line: allow comma/semicolon separated words (old behaviour).
+            $parts = preg_split('/[,;]+/', $text, -1, PREG_SPLIT_NO_EMPTY);
+        }
+        $result = [];
+        foreach ($parts as $part) {
+            $part = trim($part);
+            // Strip stray leading/trailing commas/semicolons from line mode.
+            $part = trim($part, ",;");
+            $part = trim(preg_replace('/\s+/', ' ', $part));
+            if ($part !== '') {
+                $result[] = $part;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Saves multiple translations + chapters from the untranslated list in one go.
+     * Expects POST data: Translation[id][dutch], Translation[id][chapter_id], returnUrl.
+     * @return \yii\web\Response
+     */
+    public function actionBulkTranslate()
+    {
+        $translations = $this->request->post('Translation', []);
+        $returnUrl = $this->request->post('returnUrl', ['list-untranslated']);
+
+        $saved = 0;
+        foreach ($translations as $id => $row) {
+            $word = Word::findOne((int) $id);
+            if ($word === null) {
+                continue;
+            }
+            $newDutch = isset($row['dutch']) ? trim((string) $row['dutch']) : '';
+            $newChapterId = isset($row['chapter_id']) && $row['chapter_id'] !== '' ? (int) $row['chapter_id'] : null;
+
+            $changed = false;
+            if ($newDutch !== '' && $newDutch !== (string) $word->dutch) {
+                $word->dutch = $newDutch;
+                $changed = true;
+            }
+            if ($newChapterId !== $word->chapter_id) {
+                $word->chapter_id = $newChapterId;
+                $changed = true;
+            }
+            if ($changed && $word->save()) {
+                $saved++;
+            }
+        }
+
+        Yii::$app->session->setFlash(
+            $saved > 0 ? 'success' : 'info',
+            $saved > 0
+                ? $saved . ($saved === 1 ? ' vertaling opgeslagen.' : ' vertalingen opgeslagen.')
+                : 'Niets gewijzigd.'
+        );
+
+        return $this->redirect($returnUrl);
     }
 
     /**
@@ -165,8 +315,9 @@ class WordController extends Controller
         $model = $this->findModel($id);
 
         if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            if ($this->request->post('returnUrl') === 'list-untranslated') {
-                return $this->redirect(['list-untranslated']);
+            $returnUrl = $this->request->post('returnUrl', '');
+            if (is_string($returnUrl) && str_contains($returnUrl, 'list-untranslated')) {
+                return $this->redirect($returnUrl);
             }
 
             return $this->redirect(['view', 'id' => $model->id]);

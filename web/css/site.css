@@ -267,7 +267,7 @@ input[type="radio"] {
     height: 1.05rem;
 }
 
-/* Practice: hoofdstukken als pills */
+/* Practice: lijsten als pills */
 #practiceselection-chapters label {
     display: flex;
     align-items: center;

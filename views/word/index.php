@@ -20,8 +20,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <?php if (isset($chapter_id)) : ?>
-        <h2>Hoofdstuk ID: <?= Html::encode($chapter_id) ?></h2>
-        <h3>Hoofdstuk titel: <?= Html::encode($chapter_name) ?></h3>
+        <h2>Lijst: <?= Html::encode($chapter_name ?? '') ?></h2>
     <?php endif; ?>
 
     <p>
@@ -40,8 +39,8 @@ $this->params['breadcrumbs'][] = $this->title;
             // 'id',
             [
                 'attribute' => 'chapter_id',
-                'value' => 'chapter.name', // Display the chapter name instead of ID
-                'label' => 'Hoofdstuk', // Label for the column
+                'value' => 'chapter.name', // Display the list name instead of ID
+                'label' => 'Lijst', // Label for the column
             ],
             'spanish',
             'dutch',

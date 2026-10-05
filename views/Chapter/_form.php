@@ -13,8 +13,8 @@ use yii\widgets\ActiveForm;
     <?php $form = ActiveForm::begin(); ?>
 
     <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
-    
-    <?= $form->field($model, 'number')->textInput(['maxlength' => true]) ?>
+
+    <?= $form->field($model, 'number')->textInput(['maxlength' => true])->hint('Optioneel bewaard uit de oude cursusindeling; lijsten sorteren op naam.') ?>
     
     <?= $form->field($model, 'description')->textarea(['rows' => 6]) ?>
 

@@ -77,7 +77,7 @@ class Word extends ActiveRecord
     {
         return [
             'id' => 'ID',
-            'chapter_id' => 'Hoofdstuk',
+            'chapter_id' => 'Lijst',
             'spanish' => 'Spaans',
             'dutch' => 'Nederlands',
             'created_at' => 'Gemaakt op',
@@ -118,6 +118,23 @@ class Word extends ActiveRecord
         return parent::beforeValidate();
     }
 
+    /**
+     * Query for words that may take part in practice:
+     * only translated words (Dutch known). Untranslated words never practice.
+     * @return \yii\db\ActiveQuery
+     */
+    public static function findTranslatable()
+    {
+        return self::find()
+            ->andWhere(['not', ['dutch' => null]])
+            ->andWhere(['not', ['dutch' => '']]);
+    }
+
+    public function getListLabel()
+    {
+        return $this->chapter ? $this->chapter->name : null;
+    }
+
     public function getChapterNumber()
     {
         return $this->chapter ? $this->chapter->number : null;
@@ -147,6 +164,57 @@ class Word extends ActiveRecord
     public function getWordBasedOnDirection(bool $nl_to_sp = false)
     {
         return $nl_to_sp ? $this->dutch : $this->spanish;
+    }
+
+    /**
+     * All accepted answers for a practice prompt, homonym-aware.
+     * Same form, different meanings (e.g. "camino": de weg / ik loop) live
+     * in separate rows, so counterparts of all rows sharing the prompt count.
+     * @param bool $nl_to_sp practice direction (true: prompt is Dutch)
+     * @return string[] display versions, deduplicated, non-empty
+     */
+    public function getPracticeAnswers(bool $nl_to_sp): array
+    {
+        if ($nl_to_sp) {
+            $values = self::find()->select(['spanish'])->where(['dutch' => $this->dutch])->column();
+            $fallback = $this->spanish;
+        } else {
+            $values = self::find()->select(['dutch'])->where(['spanish' => $this->spanish])->column();
+            $fallback = $this->dutch;
+        }
+
+        $answers = [];
+        foreach ($values as $value) {
+            foreach (explode(',', (string) $value) as $part) {
+                $part = trim($part);
+                if ($part !== '' && !in_array($part, $answers)) {
+                    $answers[] = $part;
+                }
+            }
+        }
+
+        if (empty($answers)) {
+            foreach (explode(',', (string) $fallback) as $part) {
+                $part = trim($part);
+                if ($part !== '' && !in_array($part, $answers)) {
+                    $answers[] = $part;
+                }
+            }
+        }
+
+        return $answers;
+    }
+
+    /**
+     * Number of word rows sharing this practice prompt (meanings count).
+     * @param bool $nl_to_sp practice direction (true: prompt is Dutch)
+     */
+    public function countPracticeMeanings(bool $nl_to_sp): int
+    {
+        if ($nl_to_sp) {
+            return (int) self::find()->where(['dutch' => $this->dutch])->count();
+        }
+        return (int) self::find()->where(['spanish' => $this->spanish])->count();
     }
 
 }

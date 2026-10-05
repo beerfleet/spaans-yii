@@ -10,7 +10,7 @@ use yii\grid\GridView;
 /** @var app\models\ChapterSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = 'Hoofdstukken';
+$this->title = 'Lijsten';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="chapter-index">
@@ -18,7 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a('Nieuw hoofdstuk', ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a('Nieuwe lijst', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
     <?= GridView::widget([
@@ -28,16 +28,11 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             // ['class' => 'yii\grid\SerialColumn'],
 
-            [ // nummer kolom wordt een link attribuut
-                'attribute' => 'number',
-                'format' => 'raw',
-                'value' => 'numberLink', // Chapter.getNumberLink() call
-            ],
             [
                 'attribute' => 'name',
                 'format' => 'raw',
                 'value' => function ($model) {
-                    return Html::a($model->name, ['word/index-by-chapter', 'chapter_id' => $model->id], ['class' => 'btn btn-primary rounded-pill']);
+                    return Html::a(Html::encode($model->name), ['word/index-by-chapter', 'chapter_id' => $model->id], ['class' => 'btn btn-primary rounded-pill']);
                 },
             ],
             'description:ntext',

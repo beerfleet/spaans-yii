@@ -14,11 +14,12 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'chapter_id')->dropDownList(
         \app\models\Chapter::find()
-            ->select(['CONCAT(number, " - ", name) AS chapter_label'])
+            ->select(['name'])
+            ->orderBy(['name' => SORT_ASC])
             ->indexBy('id')
             ->column(),
-        ['prompt' => '— Geen hoofdstuk (later bepalen) —']
-    )->label("Hoofdstuk (optioneel)") ?>
+        ['prompt' => '— Geen lijst (later bepalen) —']
+    )->label("Lijst (optioneel)") ?>
 
     <?= $form->field($model, 'spanish')->textInput(['maxlength' => true])->label('Spaans') ?>
 

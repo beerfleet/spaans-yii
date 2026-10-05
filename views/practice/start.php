@@ -8,17 +8,19 @@ use yii\widgets\ActiveForm;
 /** @var yii\web\View $this */
 /** @var PracticeSelection $model */
 /** @var Chapter[] $chapters */
+/** @var array $counts translatable words per chapter_id */
+/** @var int $translatableTotal */
 
 $this->title = 'Oefening starten';
 $this->params['breadcrumbs'][] = $this->title;
 
+$counts = $counts ?? [];
+$translatableTotal = $translatableTotal ?? 0;
+
 $chapterOptions = [];
 foreach ($chapters as $chapter) {
-    $chapterOptions[$chapter->id] = sprintf(
-        '%s: %s',
-        $chapter->number,
-        $chapter->name,
-    );
+    $n = (int) ($counts[$chapter->id] ?? 0);
+    $chapterOptions[$chapter->id] = sprintf('%s (%d)', $chapter->name, $n);
 }
 ?>
 
@@ -30,7 +32,9 @@ foreach ($chapters as $chapter) {
         'method' => 'post',
     ]); ?>
 
-    <?= $form->field($model, 'chapters')->checkboxList($chapterOptions) ?>
+    <?= $form->field($model, 'all_chapters')->checkbox()->hint("Alle {$translatableTotal} vertaalde woorden, uit alle lijsten.") ?>
+
+    <?= $form->field($model, 'chapters')->checkboxList($chapterOptions)->hint('Alleen nodig als je niet alles oefent.') ?>
 
     <?= $form->field($model, 'max_words')->textInput([
         'type' => 'number',
