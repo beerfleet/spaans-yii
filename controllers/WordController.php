@@ -310,7 +310,7 @@ class WordController extends Controller
             Yii::$app->session->setFlash(
                 $saved > 0 ? 'success' : 'info',
                 $saved > 0
-                    ? $saved . ($saved === 1 ? ' vertaling opgeslagen.' : ' vertalingen opgeslagen.')
+                    ? $saved . ($saved === 1 ? ' wijziging opgeslagen.' : ' wijzigingen opgeslagen.')
                     : 'Niets gewijzigd.'
             );
         }

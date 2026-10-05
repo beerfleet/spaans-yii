@@ -1,5 +1,6 @@
 <?php
 
+use app\models\Chapter;
 use app\models\Word;
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -14,6 +15,14 @@ use yii\grid\GridView;
 
 $this->title = 'Woorden';
 $this->params['breadcrumbs'][] = $this->title;
+
+$chapterList = Chapter::find()
+    ->select(['name'])
+    ->orderBy(['name' => SORT_ASC])
+    ->indexBy('id')
+    ->column();
+
+$returnUrl = Yii::$app->request->url;
 ?>
 <div class="word-index">
 
@@ -28,7 +37,20 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a('Meerdere woorden', ['create-multiple'], ['class' => 'btn btn-success']) ?>
     </p>
 
+    <p class="text-muted">
+        Pas Nederlands en/of lijst per regel aan en bewaar alles in één keer (geldt voor deze pagina).
+        Spaans wijzig je per woord via het potloodje.
+    </p>
+
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
+
+    <?= Html::beginForm(['word/bulk-translate'], 'post') ?>
+    <?= Html::hiddenInput(Yii::$app->request->csrfParam, Yii::$app->request->getCsrfToken()) ?>
+    <?= Html::hiddenInput('returnUrl', $returnUrl) ?>
+
+    <p>
+        <?= Html::submitButton('Alles opslaan', ['class' => 'btn btn-success']) ?>
+    </p>
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
@@ -39,18 +61,38 @@ $this->params['breadcrumbs'][] = $this->title;
             // 'id',
             [
                 'attribute' => 'chapter_id',
-                'value' => 'chapter.name', // Display the list name instead of ID
-                'label' => 'Lijst', // Label for the column
+                'label' => 'Lijst',
+                'filter' => Html::activeDropDownList(
+                    $searchModel,
+                    'chapter_id',
+                    $chapterList,
+                    ['prompt' => 'Alle', 'class' => 'form-control']
+                ),
+                'content' => function ($model) use ($chapterList) {
+                    /** @var Word $model */
+                    return Html::dropDownList(
+                        "Translation[{$model->id}][chapter_id]",
+                        $model->chapter_id,
+                        $chapterList,
+                        ['prompt' => '—', 'class' => 'form-control form-control-sm']
+                    );
+                },
             ],
             'spanish',
-            'dutch',
             [
-                'attribute' => 'created_at',
-                'format' => ['datetime', 'php:d-m-Y H:i:s']
-            ],
-            [
-                'attribute' => 'updated_at',
-                'format' => ['datetime', 'php:d-m-Y H:i:s']
+                'attribute' => 'dutch',
+                'label' => 'Nederlands',
+                'content' => function ($model, $key, $index) {
+                    /** @var Word $model */
+                    return Html::textInput(
+                        "Translation[{$model->id}][dutch]",
+                        $model->dutch,
+                        [
+                            'class' => 'form-control translation-input',
+                            'autofocus' => $index === 0,
+                        ]
+                    );
+                },
             ],
             [
                 'class' => ActionColumn::class,
@@ -60,6 +102,12 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
         ],
     ]); ?>
+
+    <p>
+        <?= Html::submitButton('Alles opslaan', ['class' => 'btn btn-success']) ?>
+    </p>
+
+    <?= Html::endForm() ?>
 
 
 </div>
