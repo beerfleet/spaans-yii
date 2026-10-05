@@ -2,16 +2,14 @@
 
 namespace app\models;
 
-use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
-use Yii\helpers\Html;
-use Yii\helpers\Url;
 
 /**
  * This is the model class for table "chapter".
  *
  * @property int $id
+ * @property int|null $number Legacy course number, optional; lists sort by name.
  * @property string $name
  * @property string|null $description
  * @property int $created_at
@@ -86,14 +84,11 @@ class Chapter extends ActiveRecord
         return $this->hasMany(Word::class, ['chapter_id' => 'id']);
     }
 
-    public function getNumberLink()
-    {
-        return Html::a(
-            $this->number,
-            Url::to(['word/index-by-chapter', 'chapter_id' => $this->id])
-        );
-    }
-
+    /**
+     * Counts the words in a list.
+     * @param int $chapter_id
+     * @return int|string
+     */
     public function countWordsOfChapter($chapter_id) {
         return $this->getWords()->where(['chapter_id' => $chapter_id])->count();
     }

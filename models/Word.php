@@ -2,7 +2,6 @@
 
 namespace app\models;
 
-use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use app\models\WordStatistic;
@@ -12,7 +11,7 @@ use app\models\WordStatistic;
  *
  * @property int $id
  * @property int|null $chapter_id
- * @property string $dutch
+ * @property string|null $dutch
  * @property string $spanish
  * @property int $created_at
  * @property int $updated_at
@@ -65,6 +64,9 @@ class Word extends ActiveRecord
         ];
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function behaviors()
     {
         return [
@@ -74,8 +76,6 @@ class Word extends ActiveRecord
                     ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at'],
                     ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
                 ],
-                // Gebruik een database-expressie zoals NOW() als je DATETIME/TIMESTAMP velden gebruikt i.p.v. Unix timestamps
-                // 'value' => new \yii\db\Expression('NOW()'),
             ],
         ];
     }
@@ -105,6 +105,9 @@ class Word extends ActiveRecord
         return $this->hasOne(Chapter::class, ['id' => 'chapter_id']);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function scenarios()
     {
         $scenarios = parent::scenarios();
@@ -113,13 +116,9 @@ class Word extends ActiveRecord
         return $scenarios;
     }
 
-    public function validate($attributeNames = null, $clearErrors = true)
-    {
-        Yii::debug('Current scenario: ' . $this->scenario);
-
-        return parent::validate($attributeNames, $clearErrors);
-    }
-
+    /**
+     * {@inheritdoc}
+     */
     public function beforeValidate()
     {
         // Empty dropdown selection becomes NULL (list-less word).
@@ -143,37 +142,30 @@ class Word extends ActiveRecord
             ->andWhere(['not', ['dutch' => '']]);
     }
 
+    /**
+     * Display name of the list this word belongs to, or null when list-less.
+     * @return string|null
+     */
     public function getListLabel()
     {
         return $this->chapter ? $this->chapter->name : null;
     }
 
-    public function getChapterNumber()
-    {
-        return $this->chapter ? $this->chapter->number : null;
-    }
-
-    public function getChapterLabel()
-    {
-        if (!$this->chapter) {
-            return null;
-        }
-
-        $number = $this->chapter->number;
-        $name = $this->chapter->name;
-
-        if ($number === null || $number === '') {
-            return $name;
-        }
-
-        return $number . ' - ' . $name;
-    }
-
+    /**
+     * Gets query for [[WordStatistic]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
     public function getWordStatistic()
     {
         return $this->hasOne(WordStatistic::class, ['word_id' => 'id']);
     }
 
+    /**
+     * Returns the prompt side of this word for a practice direction.
+     * @param bool $nl_to_sp true: prompt is Dutch, false: prompt is Spanish
+     * @return string|null
+     */
     public function getWordBasedOnDirection(bool $nl_to_sp = false)
     {
         return $nl_to_sp ? $this->dutch : $this->spanish;
