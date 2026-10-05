@@ -1,38 +1,76 @@
 <?php
 
 /** @var yii\web\View $this */
+/** @var int $wordCount */
+/** @var int $listCount */
+/** @var int $untranslatedCount */
+/** @var bool $practiceActive */
+/** @var int $practiceProgress */
+/** @var int $practiceTotal */
 
 use yii\helpers\Html;
 
 $this->title = 'Spaans Oefenen';
 $this->params['meta_description'] = 'Oefen je Spaanse woordenschat met interactieve oefeningen.';
-$this->params['meta_keywords'] = 'spaans, Nederlands, oefenen, woordenschat, leeren';
+$this->params['meta_keywords'] = 'spaans, Nederlands, oefenen, woordenschat, leren';
 
-// Define the navigation items as cards
+$wordCount = $wordCount ?? 0;
+$listCount = $listCount ?? 0;
+$untranslatedCount = $untranslatedCount ?? 0;
+$practiceActive = $practiceActive ?? false;
+$practiceProgress = $practiceProgress ?? 0;
+$practiceTotal = $practiceTotal ?? 0;
+
+// Define the workflow cards: direct links to what the app can do.
 $navItems = [
     [
-        'title' => 'Lijsten',
-        'description' => 'Bekijk beschikbare lijsten of voeg een nieuwe lijst toe aan je leerlijst.',
-        'icon' => '📚',
-        'url' => ['/hoofdstuk'],
-        'btn_text' => 'Bekijk lijst',
-        'btn_url' => ['/hoofdstuk']
+        'title' => 'Bulk toevoegen',
+        'description' => 'Plak een rij woorden (één per regel) en bekijk eerst een preview.',
+        'icon' => '＋',
+        'url' => ['/woord/maak/bulk'],
+        'btn_text' => 'Woorden toevoegen',
+        'btn_url' => ['/woord/maak/bulk'],
     ],
     [
-        'title' => 'Woorden',
-        'description' => 'Beheer je woordenschat: voeg nieuwe woorden toe, bekijk onvertaalde woorden of maak bulk aanpassingen.',
-        'icon' => '📖',
-        'url' => ['/woord'],
-        'btn_text' => 'Woorden beheren',
-        'btn_url' => ['/woord']
+        'title' => 'Vertalen',
+        'description' => 'Werk de inbox weg: vul Nederlands en lijst in, alles in één keer.',
+        'icon' => '✏️',
+        'url' => ['/woord/onvertaald'],
+        'btn_text' => 'Verder vertalen',
+        'btn_url' => ['/woord/onvertaald'],
+        'badge' => $untranslatedCount > 0 ? $untranslatedCount . ' open' : null,
     ],
     [
         'title' => 'Oefenen',
-        'description' => 'Start direct met oefenen en test je kennis van de Spaanse woorden.',
+        'description' => 'Per lijst of alles tegelijk, heen en weer.',
         'icon' => '🎯',
         'url' => ['/oefenen'],
         'btn_text' => 'Nu oefenen',
-        'btn_url' => ['/oefenen']
+        'btn_url' => ['/oefenen'],
+    ],
+    [
+        'title' => 'Lijsten',
+        'description' => 'Bekijk beschikbare lijsten of voeg een nieuwe lijst toe.',
+        'icon' => '📚',
+        'url' => ['/hoofdstuk'],
+        'btn_text' => 'Bekijk lijsten',
+        'btn_url' => ['/hoofdstuk'],
+    ],
+    [
+        'title' => 'Statistieken',
+        'description' => 'Bekijk je scores per woord en oefenrichting.',
+        'icon' => '📊',
+        'url' => ['/oefenen/statistieken'],
+        'btn_text' => 'Bekijk scores',
+        'btn_url' => ['/oefenen/statistieken'],
+    ],
+    [
+        'title' => 'Woorden',
+        'description' => 'Zoek, filter en bewerk je volledige woordenschat per lijst.',
+        'icon' => '📖',
+        'url' => ['/woord'],
+        'btn_text' => 'Woorden beheren',
+        'btn_url' => ['/woord'],
     ],
 ];
 ?>
@@ -44,9 +82,20 @@ $navItems = [
             <h1>Welkom bij<br><span>Spaans Oefenen</span></h1>
             <p>Leer Spaanse woorden. Oefen op jouw tempo.<br>En maak van woordenschat iets dat blijft hangen.</p>
             <div class="home-hero-actions">
-                <?= Html::a('🎯 Start met oefenen', ['/oefenen'], ['class' => 'btn btn-primary btn-lg']) ?>
-                <?= Html::a('📖 Bekijk woorden', ['/woord'], ['class' => 'home-hero-link']) ?>
+                <?php if ($practiceActive): ?>
+                    <?= Html::a("▶ Ga verder met oefenen ({$practiceProgress} van {$practiceTotal})", ['/oefenen/oefening'], ['class' => 'btn btn-primary btn-lg']) ?>
+                <?php elseif ($untranslatedCount > 0): ?>
+                    <?= Html::a("✏️ Verder vertalen ({$untranslatedCount} open)", ['/woord/onvertaald'], ['class' => 'btn btn-primary btn-lg']) ?>
+                <?php else: ?>
+                    <?= Html::a('🎯 Start met oefenen', ['/oefenen'], ['class' => 'btn btn-primary btn-lg']) ?>
+                <?php endif; ?>
+                <?= Html::a('＋ Bulk toevoegen', ['/woord/maak/bulk'], ['class' => 'home-hero-link']) ?>
             </div>
+            <dl class="home-stats">
+                <div><dt><?= $wordCount ?></dt><dd>woorden</dd></div>
+                <div><dt><?= $listCount ?></dt><dd>lijsten</dd></div>
+                <div><dt><?= $untranslatedCount ?></dt><dd>onvertaald</dd></div>
+            </dl>
         </div>
         <div class="home-hero-art" aria-hidden="true">
             <div class="sun"></div>
@@ -69,11 +118,16 @@ $navItems = [
                     <div class="home-card-number">0<?= $index + 1 ?></div>
                     <div class="home-card-icon"><?= $item['icon'] ?></div>
                     <div class="card-body">
-                        <h2><?= $item['title'] ?></h2>
-                        <p><?= $item['description'] ?></p>
+                        <h2>
+                            <?= Html::encode($item['title']) ?>
+                            <?php if (!empty($item['badge'])): ?>
+                                <span class="badge bg-warning text-dark"><?= Html::encode($item['badge']) ?></span>
+                            <?php endif; ?>
+                        </h2>
+                        <p><?= Html::encode($item['description']) ?></p>
                     </div>
                     <div class="card-footer">
-                        <?= Html::a($item['btn_text'] . ' →', $item['btn_url'], ['class' => 'btn btn-primary']) ?>
+                        <?= Html::a($item['btn_text'] . ' →', $item['btn_url'], ['class' => 'btn btn-primary stretched-link']) ?>
                     </div>
                 </article>
             </div>
@@ -83,7 +137,13 @@ $navItems = [
     <section class="home-tip">
         <div class="home-tip-icon">💡</div>
         <div><strong>Tip van vandaag</strong>
-            <p>Een paar minuten oefenen is beter dan alles in één keer willen leren.</p>
+            <?php if ($practiceActive): ?>
+                <p>Je oefening staat nog open — maak hem af voor het beste resultaat.</p>
+            <?php elseif ($untranslatedCount > 0): ?>
+                <p>Nog <?= $untranslatedCount ?> te vertalen. Onvertaalde woorden doen niet mee aan oefenen.</p>
+            <?php else: ?>
+                <p>Een paar minuten oefenen is beter dan alles in één keer willen leren.</p>
+            <?php endif; ?>
         </div>
     </section>
 

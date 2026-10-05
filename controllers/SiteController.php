@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace app\controllers;
 
 use Yii;
+use app\models\Chapter;
 use app\models\ContactForm;
 use app\models\LoginForm;
+use app\models\Word;
 use yii\captcha\CaptchaAction;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -72,13 +74,31 @@ class SiteController extends Controller
     }
 
     /**
-     * Displays homepage.
+     * Displays homepage with live collection status and the smart next step.
      *
      * @return string
      */
     public function actionIndex(): string
     {
-        return $this->render('index');
+        $wordCount = (int) Word::find()->count();
+        $listCount = (int) Chapter::find()->count();
+        $untranslatedCount = (int) Word::find()
+            ->where(['or', ['dutch' => null], ['dutch' => '']])
+            ->count();
+
+        $practice = Yii::$app->session->get('practice');
+        $practiceActive = is_array($practice) && !empty($practice['word_ids']);
+        $practiceProgress = $practiceActive ? (int) ($practice['position'] ?? 0) : 0;
+        $practiceTotal = $practiceActive ? count($practice['word_ids']) : 0;
+
+        return $this->render('index', [
+            'wordCount' => $wordCount,
+            'listCount' => $listCount,
+            'untranslatedCount' => $untranslatedCount,
+            'practiceActive' => $practiceActive,
+            'practiceProgress' => $practiceProgress,
+            'practiceTotal' => $practiceTotal,
+        ]);
     }
 
     /**

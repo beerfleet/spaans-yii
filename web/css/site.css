@@ -1436,6 +1436,39 @@ main .btn-danger {
 
 
 /* ------------------------------------------------------------
+   HOME STATS (live collection status under the hero)
+   ------------------------------------------------------------ */
+
+.home-stats {
+    display: flex;
+
+    gap: 1.75rem;
+
+    margin: 1.25rem 0 0;
+    padding: 0;
+}
+
+.home-stats div {
+    display: flex;
+
+    flex-direction: column;
+}
+
+.home-stats dt {
+    font-size: 1.6rem;
+    font-weight: 900;
+
+    line-height: 1;
+}
+
+.home-stats dd {
+    margin: .15rem 0 0;
+
+    color: var(--muted);
+}
+
+
+/* ------------------------------------------------------------
    TIP OF THE DAY
    ------------------------------------------------------------ */
 
