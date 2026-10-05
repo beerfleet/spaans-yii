@@ -10,17 +10,27 @@ use yii\widgets\ActiveForm;
 /** @var Chapter[] $chapters */
 /** @var array $counts translatable words per chapter_id */
 /** @var int $translatableTotal */
+/** @var array $untranslatedCounts untranslated words per chapter_id */
+/** @var int $untranslatedTotal */
 
 $this->title = 'Oefening starten';
 $this->params['breadcrumbs'][] = $this->title;
 
 $counts = $counts ?? [];
 $translatableTotal = $translatableTotal ?? 0;
+$untranslatedCounts = $untranslatedCounts ?? [];
+$untranslatedTotal = $untranslatedTotal ?? 0;
 
 $chapterOptions = [];
 foreach ($chapters as $chapter) {
     $n = (int) ($counts[$chapter->id] ?? 0);
-    $chapterOptions[$chapter->id] = sprintf('%s (%d)', $chapter->name, $n);
+    $u = (int) ($untranslatedCounts[$chapter->id] ?? 0);
+    $chapterOptions[$chapter->id] = sprintf(
+        '%s (%d te oefenen%s)',
+        $chapter->name,
+        $n,
+        $u > 0 ? ", {$u} onvertaald" : ''
+    );
 }
 ?>
 
@@ -32,9 +42,9 @@ foreach ($chapters as $chapter) {
         'method' => 'post',
     ]); ?>
 
-    <?= $form->field($model, 'all_chapters')->checkbox()->hint("Alle {$translatableTotal} vertaalde woorden, uit alle lijsten.") ?>
+    <?= $form->field($model, 'all_chapters')->checkbox()->hint("Alle {$translatableTotal} vertaalde woorden, uit alle lijsten." . ($untranslatedTotal > 0 ? " ({$untranslatedTotal} onvertaald doen niet mee.)" : '')) ?>
 
-    <?= $form->field($model, 'chapters')->checkboxList($chapterOptions)->hint('Alleen nodig als je niet alles oefent.') ?>
+    <?= $form->field($model, 'chapters')->checkboxList($chapterOptions)->hint('Het getal is het aantal oefenbare (vertaalde) woorden per lijst. Alleen nodig als je niet alles oefent.') ?>
 
     <?= $form->field($model, 'max_words')->textInput([
         'type' => 'number',

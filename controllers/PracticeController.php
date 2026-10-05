@@ -7,6 +7,7 @@ use app\models\PracticeAnswer;
 use app\models\PracticeSelection;
 use app\models\Word;
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
 use yii\web\Response;
 use app\models\WordStatistic;
@@ -26,12 +27,31 @@ class PracticeController extends Controller
 
         // Translatable words per list (for the counts next to each list).
         // Untranslated words never practice, in any direction.
-        $counts = Word::findTranslatable()
-            ->select(['chapter_id', 'COUNT(*) AS n'])
-            ->groupBy(['chapter_id'])
-            ->indexBy('chapter_id')
-            ->column();
+        // NB: Query::column() returns the FIRST selected column, so map
+        // chapter_id => count explicitly instead.
+        $counts = ArrayHelper::map(
+            Word::findTranslatable()
+                ->select(['chapter_id', 'COUNT(*) AS n'])
+                ->groupBy(['chapter_id'])
+                ->asArray()
+                ->all(),
+            'chapter_id',
+            'n'
+        );
         $translatableTotal = (int) Word::findTranslatable()->count();
+        $untranslatedCounts = ArrayHelper::map(
+            Word::find()
+                ->select(['chapter_id', 'COUNT(*) AS n'])
+                ->where(['or', ['dutch' => null], ['dutch' => '']])
+                ->groupBy(['chapter_id'])
+                ->asArray()
+                ->all(),
+            'chapter_id',
+            'n'
+        );
+        $untranslatedTotal = (int) Word::find()
+            ->where(['or', ['dutch' => null], ['dutch' => '']])
+            ->count();
 
         if ($model->load($this->request->post()) && $model->validate()) {
             $useAll = (bool) $model->all_chapters;
@@ -71,6 +91,8 @@ class PracticeController extends Controller
             'chapters' => $chapters,
             'counts' => $counts,
             'translatableTotal' => $translatableTotal,
+            'untranslatedCounts' => $untranslatedCounts,
+            'untranslatedTotal' => $untranslatedTotal,
         ]);
     }
 
