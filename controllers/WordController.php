@@ -177,6 +177,7 @@ class WordController extends Controller
     {
         $seen = [];
         $existingByForm = [];
+        $existingByNormalized = [];
         $existingWords = Word::find()
             ->with('chapter')
             ->where(['spanish' => array_values(array_unique($lines))])
@@ -190,6 +191,7 @@ class WordController extends Controller
                 $meaning .= ' [' . $existing->listLabel . ']';
             }
             $existingByForm[$key][] = $meaning;
+            $existingByNormalized[Word::normalizeAnswer($key)][] = (string) $existing->spanish;
         }
 
         $preview = [];
@@ -202,12 +204,22 @@ class WordController extends Controller
                 $status = 'exists';
             }
             $seen[$key] = true;
-            $preview[] = [
+            $row = [
                 'spanish' => $line,
                 'status' => $status,
                 'existing' => $existingByForm[$key] ?? [],
                 'add' => $status === 'new',
             ];
+            if ($status === 'new') {
+                // Same word without accents (typed on a keyboard lacking them)?
+                // Point at the existing form instead of silently doubling it.
+                foreach (array_unique($existingByNormalized[Word::normalizeAnswer($key)] ?? []) as $form) {
+                    if (mb_strtolower($form) !== $key) {
+                        $row['existing'][] = 'lijkt op “' . $form . '” (accent?)';
+                    }
+                }
+            }
+            $preview[] = $row;
         }
 
         return $preview;

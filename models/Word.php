@@ -172,6 +172,26 @@ class Word extends ActiveRecord
     }
 
     /**
+     * Normalizes an answer for lenient comparison: lowercased, accents
+     * stripped, but ñ/Ñ kept intact. In Spanish ñ is a distinct letter,
+     * not an accented n (año/year vs ano/anus), so it stays strict.
+     * @param string|null $value
+     * @return string
+     */
+    public static function normalizeAnswer($value)
+    {
+        $value = mb_strtolower(trim((string) $value));
+        return strtr($value, [
+            'á' => 'a', 'à' => 'a', 'ä' => 'a', 'â' => 'a',
+            'é' => 'e', 'è' => 'e', 'ë' => 'e', 'ê' => 'e',
+            'í' => 'i', 'ì' => 'i', 'ï' => 'i', 'î' => 'i',
+            'ó' => 'o', 'ò' => 'o', 'ö' => 'o', 'ô' => 'o',
+            'ú' => 'u', 'ù' => 'u', 'ü' => 'u', 'û' => 'u',
+            'ý' => 'y', 'ÿ' => 'y',
+        ]);
+    }
+
+    /**
      * All accepted answers for a practice prompt, homonym-aware.
      * Same form, different meanings (e.g. "camino": de weg / ik loop) live
      * in separate rows, so counterparts of all rows sharing the prompt count.

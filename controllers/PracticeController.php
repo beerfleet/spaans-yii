@@ -224,13 +224,32 @@ class PracticeController extends Controller
     private function processAnswer(Word $word, PracticeAnswer $answerModel, array &$practice, \yii\web\Session $session): void
     {
         $acceptedAnswers = $word->getPracticeAnswers((bool) $practice['nl_to_sp']);
-        $given = mb_strtolower(trim($answerModel->answer));
+        $givenRaw = trim($answerModel->answer);
+        $given = mb_strtolower($givenRaw);
 
+        // Exact match first; otherwise fall back to accent-lenient comparison
+        // (for keyboards without Spanish accents). ñ stays strict, see normalizeAnswer().
         $isCorrect = false;
+        $isExact = false;
+        $displayCorrect = $acceptedAnswers[0] ?? '';
         foreach ($acceptedAnswers as $correctAnswer) {
-            if ($given === mb_strtolower(trim($correctAnswer))) {
+            $correctAnswer = trim($correctAnswer);
+            if ($given === mb_strtolower($correctAnswer)) {
                 $isCorrect = true;
+                $isExact = true;
+                $displayCorrect = $correctAnswer;
                 break;
+            }
+        }
+        if (!$isCorrect) {
+            $normalizedGiven = Word::normalizeAnswer($given);
+            foreach ($acceptedAnswers as $correctAnswer) {
+                $correctAnswer = trim($correctAnswer);
+                if ($normalizedGiven === Word::normalizeAnswer($correctAnswer)) {
+                    $isCorrect = true;
+                    $displayCorrect = $correctAnswer;
+                    break;
+                }
             }
         }
 
@@ -266,7 +285,9 @@ class PracticeController extends Controller
         $session->setFlash(
             $isCorrect ? 'success' : 'error',
             $isCorrect
-                ? trim($answerModel->answer) . ' is correct!'
+                ? ($isExact
+                    ? $givenRaw . ' is correct!'
+                    : 'Goed — let op het accent: ' . $displayCorrect)
                 : trim($answerModel->answer) . ' is fout! Mogelijk: ' . implode(', ', array_slice($acceptedAnswers, 0, 5))
                     . (count($acceptedAnswers) > 5 ? ' …' : '')
         );
