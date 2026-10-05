@@ -35,7 +35,7 @@ if (is_array($preview)) {
         ['prompt' => '— Geen lijst (later bepalen) —']
     )->label("Lijst (optioneel)")->hint('Laat leeg als de woorden (nog) niet tot dezelfde lijst behoren. Je kunt de lijst later per woord invullen.') ?>
 
-    <?= $form->field($model, 'spanish')->textarea(['rows' => 8, 'placeholder' => "buenos días\nmuchas gracias\nHola, ¿cómo estás?"])->label('Spaans')->hint('Eén uitdrukking per regel — ook zinnen met komma\'s blijven één record. Controleer het resultaat in de preview hieronder.') ?>
+    <?= $form->field($model, 'bulkText')->textarea(['rows' => 8, 'placeholder' => "buenos días\nmuchas gracias\nHola, ¿cómo estás?"])->label('Spaans')->hint('Eén uitdrukking per regel — ook zinnen met komma\'s blijven één record. Controleer het resultaat in de preview hieronder.') ?>
 
     <?= $this->render('_accent-keys', ['inputIds' => ['word-spanish']]) ?>
 

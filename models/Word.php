@@ -21,6 +21,12 @@ use app\models\WordStatistic;
 class Word extends ActiveRecord
 {
 
+    /**
+     * Raw bulk input (one expression per line). Form-only attribute for the
+     * bulkForm scenario, so a whole batch is not limited to 255 chars.
+     * @var string|null
+     */
+    public $bulkText;
 
     /**
      * {@inheritdoc}
@@ -35,6 +41,16 @@ class Word extends ActiveRecord
      */
     public function rules()
     {
+        if ($this->scenario === 'bulkForm') {
+            return [
+                [['bulkText'], 'required', 'message' => 'Het veld {attribute} is verplicht'],
+                [['bulkText'], 'string', 'max' => 20000],
+                [['chapter_id'], 'default', 'value' => null],
+                [['chapter_id'], 'integer'],
+                [['chapter_id'], 'exist', 'skipOnError' => true, 'targetClass' => Chapter::class, 'targetAttribute' => ['chapter_id' => 'id']],
+            ];
+        }
+
         if ($this->scenario === 'bulkCreate') {
             return [
                 [['spanish'], 'required', 'message' => 'Het veld {attribute} is verplicht'],
@@ -89,6 +105,7 @@ class Word extends ActiveRecord
             'id' => 'ID',
             'chapter_id' => 'Lijst',
             'spanish' => 'Spaans',
+            'bulkText' => 'Spaans',
             'dutch' => 'Nederlands',
             'created_at' => 'Gemaakt op',
             'updated_at' => 'Gewijzigd op',
@@ -112,6 +129,7 @@ class Word extends ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios['bulkCreate'] = ['chapter_id', 'spanish', 'created_at', 'updated_at'];
+        $scenarios['bulkForm'] = ['chapter_id', 'bulkText'];
         $scenarios['bulkTranslate'] = ['dutch', 'chapter_id'];
         return $scenarios;
     }

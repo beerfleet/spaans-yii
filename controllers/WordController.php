@@ -120,15 +120,15 @@ class WordController extends Controller
     public function actionCreateMultiple()
     {
         $model = new Word();
-        $model->scenario = 'bulkCreate'; // Set the scenario to bulkCreate
+        $model->scenario = 'bulkForm'; // Bulk textarea lives in bulkText (no 255 limit)
 
         $preview = null;
 
         if ($model->load($this->request->post()) && $model->validate()) {
-            $lines = self::parseBulkLines($model->spanish);
+            $lines = self::parseBulkLines($model->bulkText);
 
             if (empty($lines)) {
-                $model->addError('spanish', 'Voer minimaal één woord in (één per regel).');
+                $model->addError('bulkText', 'Voer minimaal één woord in (één per regel).');
             } else {
                 $preview = $this->buildBulkPreview($lines);
 
@@ -154,7 +154,7 @@ class WordController extends Controller
 
     /**
      * Normalizes the bulk form's list choice: no selection becomes NULL.
-     * @param Word $model bulk form model in the bulkCreate scenario
+     * @param Word $model bulk form model in the bulkForm scenario
      * @return int|null
      */
     private function resolveBulkChapterId(Word $model)
