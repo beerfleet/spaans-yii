@@ -125,94 +125,18 @@ class WordController extends Controller
         $preview = null;
 
         if ($model->load($this->request->post()) && $model->validate()) {
-            $chapterId = $model->chapter_id === '' ? null : $model->chapter_id;
             $lines = self::parseBulkLines($model->spanish);
 
             if (empty($lines)) {
                 $model->addError('spanish', 'Voer minimaal één woord in (één per regel).');
             } else {
-                // Spanish alone is not unique: the same form can have different
-                // meanings (e.g. "camino": de weg / ik loop). So we only warn
-                // about duplicates / existing forms and let the user decide
-                // per row whether to add it anyway.
-                $seen = [];
-                $existingByForm = [];
-                $existingWords = Word::find()
-                    ->with('chapter')
-                    ->where(['spanish' => array_values(array_unique($lines))])
-                    ->all();
-                foreach ($existingWords as $existing) {
-                    $key = mb_strtolower(trim((string) $existing->spanish));
-                    $meaning = $existing->dutch !== null && trim((string) $existing->dutch) !== ''
-                        ? (string) $existing->dutch
-                        : '(nog onvertaald)';
-                    if ($existing->listLabel !== null) {
-                        $meaning .= ' [' . $existing->listLabel . ']';
-                    }
-                    $existingByForm[$key][] = $meaning;
-                }
-
-                $preview = [];
-                foreach ($lines as $line) {
-                    $key = mb_strtolower($line);
-                    $status = 'new';
-                    if (isset($seen[$key])) {
-                        $status = 'duplicate';
-                    } elseif (isset($existingByForm[$key])) {
-                        $status = 'exists';
-                    }
-                    $seen[$key] = true;
-                    $preview[] = [
-                        'spanish' => $line,
-                        'status' => $status,
-                        'existing' => $existingByForm[$key] ?? [],
-                        'add' => $status === 'new',
-                    ];
-                }
+                $preview = $this->buildBulkPreview($lines);
 
                 // Confirm step: save checked rows.
                 if ($this->request->post('confirm') !== null) {
-                    $checked = $this->request->post('add', []);
-                    $saved = 0;
-                    $skipped = 0;
-                    $transaction = Yii::$app->db->beginTransaction();
-                    try {
-                        foreach ($preview as $i => $row) {
-                            $wantAdd = isset($checked[$i]);
-                            if (!$wantAdd) {
-                                $skipped++;
-                                continue;
-                            }
-                            $newWord = new Word();
-                            $newWord->scenario = 'bulkCreate';
-                            $newWord->spanish = $row['spanish'];
-                            $newWord->chapter_id = $chapterId;
-                            if ($newWord->save()) {
-                                $saved++;
-                            } else {
-                                Yii::error('Failed to save word: ' . print_r($newWord->errors, true));
-                                $skipped++;
-                            }
-                        }
-                        $transaction->commit();
-                    } catch (\Throwable $e) {
-                        $transaction->rollBack();
-                        throw $e;
-                    }
-
-                    $parts = [];
-                    if ($saved > 0) {
-                        $parts[] = $saved . ($saved === 1 ? ' woord toegevoegd' : ' woorden toegevoegd');
-                    }
-                    if ($skipped > 0) {
-                        $parts[] = $skipped . ' overgeslagen';
-                    }
-                    Yii::$app->session->setFlash(
-                        $saved > 0 ? 'success' : 'warning',
-                        $saved > 0
-                            ? implode(', ', $parts) . '.'
-                            : 'Niets toegevoegd. ' . implode(', ', $parts) . '.'
-                    );
+                    $chapterId = $this->resolveBulkChapterId($model);
+                    [$saved, $skipped] = $this->saveBulkPreview($preview, $chapterId);
+                    $this->flashBulkResult($saved, $skipped);
 
                     if ($chapterId !== null) {
                         return $this->redirect(['list-untranslated', 'WordSearch[chapter_id]' => $chapterId]);
@@ -226,6 +150,129 @@ class WordController extends Controller
             'model' => $model,
             'preview' => $preview,
         ]);
+    }
+
+    /**
+     * Normalizes the bulk form's list choice: no selection becomes NULL.
+     * @param Word $model bulk form model in the bulkCreate scenario
+     * @return int|null
+     */
+    private function resolveBulkChapterId(Word $model)
+    {
+        return $model->chapter_id === '' || $model->chapter_id === null
+            ? null
+            : (int) $model->chapter_id;
+    }
+
+    /**
+     * Builds one preview row per line, flagging duplicates within the input
+     * and forms that already exist (with their known meanings for context).
+     * Spanish alone is not unique: the same form can have different
+     * meanings (e.g. "camino": de weg / ik loop). So we only warn and let
+     * the user decide per row whether to add it anyway.
+     * @param string[] $lines parsed expressions
+     * @return array rows with spanish, status, existing meanings and add flag
+     */
+    private function buildBulkPreview(array $lines)
+    {
+        $seen = [];
+        $existingByForm = [];
+        $existingWords = Word::find()
+            ->with('chapter')
+            ->where(['spanish' => array_values(array_unique($lines))])
+            ->all();
+        foreach ($existingWords as $existing) {
+            $key = mb_strtolower(trim((string) $existing->spanish));
+            $meaning = $existing->dutch !== null && trim((string) $existing->dutch) !== ''
+                ? (string) $existing->dutch
+                : '(nog onvertaald)';
+            if ($existing->listLabel !== null) {
+                $meaning .= ' [' . $existing->listLabel . ']';
+            }
+            $existingByForm[$key][] = $meaning;
+        }
+
+        $preview = [];
+        foreach ($lines as $line) {
+            $key = mb_strtolower($line);
+            $status = 'new';
+            if (isset($seen[$key])) {
+                $status = 'duplicate';
+            } elseif (isset($existingByForm[$key])) {
+                $status = 'exists';
+            }
+            $seen[$key] = true;
+            $preview[] = [
+                'spanish' => $line,
+                'status' => $status,
+                'existing' => $existingByForm[$key] ?? [],
+                'add' => $status === 'new',
+            ];
+        }
+
+        return $preview;
+    }
+
+    /**
+     * Saves the checked preview rows in a transaction.
+     * Unchecked boxes are absent from POST, so only explicitly checked
+     * rows are saved (homonyms stay opt-in).
+     * @param array $preview rows from buildBulkPreview()
+     * @param int|null $chapterId list for all new words
+     * @return int[] [saved, skipped]
+     */
+    private function saveBulkPreview(array $preview, $chapterId)
+    {
+        $checked = $this->request->post('add', []);
+        $saved = 0;
+        $skipped = 0;
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            foreach ($preview as $i => $row) {
+                if (!isset($checked[$i])) {
+                    $skipped++;
+                    continue;
+                }
+                $newWord = new Word();
+                $newWord->scenario = 'bulkCreate';
+                $newWord->spanish = $row['spanish'];
+                $newWord->chapter_id = $chapterId;
+                if ($newWord->save()) {
+                    $saved++;
+                } else {
+                    Yii::error('Failed to save word: ' . print_r($newWord->errors, true));
+                    $skipped++;
+                }
+            }
+            $transaction->commit();
+        } catch (\Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+
+        return [$saved, $skipped];
+    }
+
+    /**
+     * Reports the bulk save outcome to the user.
+     * @param int $saved
+     * @param int $skipped
+     */
+    private function flashBulkResult($saved, $skipped)
+    {
+        $parts = [];
+        if ($saved > 0) {
+            $parts[] = $saved . ($saved === 1 ? ' woord toegevoegd' : ' woorden toegevoegd');
+        }
+        if ($skipped > 0) {
+            $parts[] = $skipped . ' overgeslagen';
+        }
+        Yii::$app->session->setFlash(
+            $saved > 0 ? 'success' : 'warning',
+            $saved > 0
+                ? implode(', ', $parts) . '.'
+                : 'Niets toegevoegd. ' . implode(', ', $parts) . '.'
+        );
     }
 
     /**
