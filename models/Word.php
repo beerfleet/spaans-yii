@@ -46,6 +46,16 @@ class Word extends ActiveRecord
             ];
         }
 
+        if ($this->scenario === 'bulkTranslate') {
+            // Untranslated list: dutch may stay empty, chapter may stay empty.
+            return [
+                [['chapter_id'], 'default', 'value' => null],
+                [['chapter_id'], 'integer'],
+                [['dutch', 'spanish'], 'string', 'max' => 255],
+                [['chapter_id'], 'exist', 'skipOnError' => true, 'targetClass' => Chapter::class, 'targetAttribute' => ['chapter_id' => 'id']],
+            ];
+        }
+
         return [
             [['spanish', 'dutch'], 'required', 'message' => 'Het veld {attribute} is verplicht'],
             [['chapter_id'], 'default', 'value' => null],
@@ -99,6 +109,7 @@ class Word extends ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios['bulkCreate'] = ['chapter_id', 'spanish', 'created_at', 'updated_at'];
+        $scenarios['bulkTranslate'] = ['dutch', 'chapter_id'];
         return $scenarios;
     }
 

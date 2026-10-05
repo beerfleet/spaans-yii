@@ -271,34 +271,49 @@ class WordController extends Controller
         $returnUrl = $this->request->post('returnUrl', ['list-untranslated']);
 
         $saved = 0;
+        $failed = 0;
         foreach ($translations as $id => $row) {
             $word = Word::findOne((int) $id);
             if ($word === null) {
                 continue;
             }
+            // Partial update: dutch/chapter may legitimately stay empty here,
+            // so validate with the lenient bulkTranslate scenario instead of
+            // the default one (which requires dutch).
+            $word->scenario = 'bulkTranslate';
             $newDutch = isset($row['dutch']) ? trim((string) $row['dutch']) : '';
             $newChapterId = isset($row['chapter_id']) && $row['chapter_id'] !== '' ? (int) $row['chapter_id'] : null;
+            $oldChapterId = $word->chapter_id === null || $word->chapter_id === '' ? null : (int) $word->chapter_id;
 
             $changed = false;
             if ($newDutch !== '' && $newDutch !== (string) $word->dutch) {
                 $word->dutch = $newDutch;
                 $changed = true;
             }
-            if ($newChapterId !== $word->chapter_id) {
+            if ($newChapterId !== $oldChapterId) {
                 $word->chapter_id = $newChapterId;
                 $changed = true;
             }
-            if ($changed && $word->save()) {
-                $saved++;
+            if ($changed) {
+                if ($word->save()) {
+                    $saved++;
+                } else {
+                    $failed++;
+                    Yii::error('Failed to bulk-save word ' . $word->id . ': ' . print_r($word->errors, true));
+                }
             }
         }
 
-        Yii::$app->session->setFlash(
-            $saved > 0 ? 'success' : 'info',
-            $saved > 0
-                ? $saved . ($saved === 1 ? ' vertaling opgeslagen.' : ' vertalingen opgeslagen.')
-                : 'Niets gewijzigd.'
-        );
+        if ($failed > 0) {
+            Yii::$app->session->setFlash('warning', $saved . ' opgeslagen, ' . $failed . ' mislukt (zie log).');
+        } else {
+            Yii::$app->session->setFlash(
+                $saved > 0 ? 'success' : 'info',
+                $saved > 0
+                    ? $saved . ($saved === 1 ? ' vertaling opgeslagen.' : ' vertalingen opgeslagen.')
+                    : 'Niets gewijzigd.'
+            );
+        }
 
         return $this->redirect($returnUrl);
     }
