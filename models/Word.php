@@ -122,7 +122,9 @@ class Word extends ActiveRecord
 
     public function beforeValidate()
     {
-        if ($this->chapter_id === '' || $this->chapter_id === 0 || $this->chapter_id === '0') {
+        // Empty dropdown selection becomes NULL (list-less word).
+        // NB: keep '0'/0 intact: WordSearch uses 0 as the "no list" filter value.
+        if ($this->chapter_id === '') {
             $this->chapter_id = null;
         }
 

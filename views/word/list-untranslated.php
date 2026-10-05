@@ -52,7 +52,7 @@ $returnUrl = Yii::$app->request->url;
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'chapter_id',
-                    Chapter::find()
+                    [0 => '— Zonder lijst —'] + Chapter::find()
                         ->select(['name'])
                         ->orderBy(['name' => SORT_ASC])
                         ->indexBy('id')

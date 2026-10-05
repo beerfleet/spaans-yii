@@ -32,6 +32,20 @@ class WordSearch extends Word
     }
 
     /**
+     * Applies the list filter. Filter value 0 means "no list"
+     * (chapter_id IS NULL), so list-less words can be found too.
+     * @param \yii\db\ActiveQuery $query
+     */
+    protected function applyChapterFilter($query)
+    {
+        if ((string) $this->chapter_id === '0') {
+            $query->andWhere(['chapter_id' => null]);
+        } else {
+            $query->andFilterWhere(['chapter_id' => $this->chapter_id]);
+        }
+    }
+
+    /**
      * Creates data provider instance with search query applied
      *
      * @param array $params
@@ -60,10 +74,10 @@ class WordSearch extends Word
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'chapter_id' => $this->chapter_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ]);
+        $this->applyChapterFilter($query);
 
         $query->andFilterWhere(['like', 'dutch', $this->dutch])
             ->andFilterWhere(['like', 'spanish', $this->spanish]);
@@ -92,10 +106,10 @@ class WordSearch extends Word
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'chapter_id' => $this->chapter_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ]);
+        $this->applyChapterFilter($query);
 
         $query->andFilterWhere(['like', 'spanish', $this->spanish]);
 
@@ -128,10 +142,10 @@ class WordSearch extends Word
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
-            'chapter_id' => $this->chapter_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ]);
+        $this->applyChapterFilter($query);
 
         $query->andFilterWhere(['like', 'dutch', $this->dutch])
             ->andFilterWhere(['like', 'spanish', $this->spanish]);

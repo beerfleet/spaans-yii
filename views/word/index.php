@@ -65,7 +65,7 @@ $returnUrl = Yii::$app->request->url;
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'chapter_id',
-                    $chapterList,
+                    [0 => '— Zonder lijst —'] + $chapterList,
                     ['prompt' => 'Alle', 'class' => 'form-control']
                 ),
                 'content' => function ($model) use ($chapterList) {
