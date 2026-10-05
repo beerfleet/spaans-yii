@@ -58,6 +58,8 @@ foreach ($chapters as $chapter) {
         0 => 'Spaans naar Nederlands',
     ]) ?>
 
+    <?= $form->field($model, 'difficult_first')->checkbox()->hint('Woorden waar je het vaakst fout op ging eerst.') ?>
+
     <div class="form-group">
         <?= Html::submitButton('Start oefening', [
             'class' => 'btn btn-primary',

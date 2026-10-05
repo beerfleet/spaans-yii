@@ -1,18 +1,11 @@
-<!-- views/practice/stats.php -->
-
 <?php
 
+use app\models\WordStatistic;
 use yii\helpers\Html;
 use yii\grid\GridView;
-use app\models\WordStatistic;
-use app\models\Word;
 
-/* @var $this yii\web\View */
-/* @var $searchModel WordStatistic */
-/* @var $stats WordStatistic[] */
-/* @var $word Word */
-
-$stats = $stats ?? [];
+/** @var yii\web\View $this */
+/** @var yii\data\ActiveDataProvider $dataProvider */
 
 $this->title = 'Statistieken';
 $this->params['breadcrumbs'][] = $this->title;
@@ -21,19 +14,44 @@ $this->params['breadcrumbs'][] = $this->title;
 <h1><?= Html::encode($this->title) ?></h1>
 
 <?= GridView::widget([
-    'dataProvider' => new \yii\data\ArrayDataProvider([
-        'allModels' => $stats,
-        'pagination' => false,
-    ]),
+    'dataProvider' => $dataProvider,
     'columns' => [
         [
-            'label' => 'Word',
+            'attribute' => 'spanish',
+            'label' => 'Spaans',
             'value' => function ($stat) {
-                $word = $stat->word;
-                return $word ? $word->getWordBasedOnDirection($stat->nl_to_sp) : 'N/A';
+                /** @var WordStatistic $stat */
+                return $stat->word ? $stat->word->spanish : '—';
             },
         ],
-        'correct_count',
-        'incorrect_count',
+        [
+            'attribute' => 'dutch',
+            'label' => 'Nederlands',
+            'value' => function ($stat) {
+                /** @var WordStatistic $stat */
+                return $stat->word && $stat->word->dutch !== null && $stat->word->dutch !== ''
+                    ? $stat->word->dutch
+                    : '—';
+            },
+        ],
+        [
+            'attribute' => 'nl_to_sp',
+            'label' => 'Richting',
+            'value' => function ($stat) {
+                /** @var WordStatistic $stat */
+                return $stat->nl_to_sp ? 'NL → ES' : 'ES → NL';
+            },
+        ],
+        'correct_count:integer:Goed',
+        'incorrect_count:integer:Fout',
+        [
+            'attribute' => 'success',
+            'label' => 'Succes %',
+            'value' => function ($stat) {
+                /** @var WordStatistic $stat */
+                $total = $stat->correct_count + $stat->incorrect_count;
+                return $total > 0 ? round(100 * $stat->correct_count / $total) . '%' : '—';
+            },
+        ],
     ],
 ]); ?>
