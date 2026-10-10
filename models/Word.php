@@ -210,6 +210,39 @@ class Word extends ActiveRecord
     }
 
     /**
+     * Groups Spanish forms occurring in more than one row ("doubles"):
+     * homonyms with different meanings as well as exact duplicates.
+     * Grouping uses the accent-lenient form, so "pasion" and "pasión"
+     * land in one group, while "ano" and "año" stay apart.
+     * Sorted by group size (desc), then form (asc).
+     * @return array normalized form => Word[] (each 2+ rows)
+     */
+    public static function findDuplicateGroups()
+    {
+        $groups = [];
+        foreach (self::find()->with('chapter')->all() as $word) {
+            $key = self::normalizeAnswer($word->spanish);
+            if ($key === '') {
+                continue;
+            }
+            $groups[$key][] = $word;
+        }
+
+        $groups = array_filter($groups, function ($group) {
+            return count($group) > 1;
+        });
+        uasort($groups, function ($a, $b) {
+            $bySize = count($b) <=> count($a);
+            if ($bySize !== 0) {
+                return $bySize;
+            }
+            return mb_strtolower($a[0]->spanish) <=> mb_strtolower($b[0]->spanish);
+        });
+
+        return $groups;
+    }
+
+    /**
      * All accepted answers for a practice prompt, homonym-aware.
      * Same form, different meanings (e.g. "camino": de weg / ik loop) live
      * in separate rows, so counterparts of all rows sharing the prompt count.

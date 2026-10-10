@@ -85,6 +85,14 @@ class SiteController extends Controller
         $untranslatedCount = (int) Word::find()
             ->where(['or', ['dutch' => null], ['dutch' => '']])
             ->count();
+        $listlessCount = (int) Word::find()->where(['chapter_id' => null])->count();
+
+        $duplicateGroups = Word::findDuplicateGroups();
+        $duplicateGroupCount = count($duplicateGroups);
+        $duplicateWordCount = 0;
+        foreach ($duplicateGroups as $group) {
+            $duplicateWordCount += count($group);
+        }
 
         $practice = Yii::$app->session->get('practice');
         $practiceActive = is_array($practice) && !empty($practice['word_ids']);
@@ -95,6 +103,9 @@ class SiteController extends Controller
             'wordCount' => $wordCount,
             'listCount' => $listCount,
             'untranslatedCount' => $untranslatedCount,
+            'listlessCount' => $listlessCount,
+            'duplicateGroupCount' => $duplicateGroupCount,
+            'duplicateWordCount' => $duplicateWordCount,
             'practiceActive' => $practiceActive,
             'practiceProgress' => $practiceProgress,
             'practiceTotal' => $practiceTotal,

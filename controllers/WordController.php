@@ -421,27 +421,7 @@ class WordController extends Controller
      */
     public function actionDuplicates()
     {
-        $words = Word::find()->with('chapter')->all();
-
-        $groups = [];
-        foreach ($words as $word) {
-            $key = Word::normalizeAnswer($word->spanish);
-            if ($key === '') {
-                continue;
-            }
-            $groups[$key][] = $word;
-        }
-
-        $groups = array_filter($groups, function ($group) {
-            return count($group) > 1;
-        });
-        uasort($groups, function ($a, $b) {
-            $bySize = count($b) <=> count($a);
-            if ($bySize !== 0) {
-                return $bySize;
-            }
-            return mb_strtolower($a[0]->spanish) <=> mb_strtolower($b[0]->spanish);
-        });
+        $groups = Word::findDuplicateGroups();
 
         $wordCount = 0;
         foreach ($groups as $group) {

@@ -4,6 +4,9 @@
 /** @var int $wordCount */
 /** @var int $listCount */
 /** @var int $untranslatedCount */
+/** @var int $listlessCount */
+/** @var int $duplicateGroupCount */
+/** @var int $duplicateWordCount */
 /** @var bool $practiceActive */
 /** @var int $practiceProgress */
 /** @var int $practiceTotal */
@@ -17,6 +20,9 @@ $this->params['meta_keywords'] = 'spaans, Nederlands, oefenen, woordenschat, ler
 $wordCount = $wordCount ?? 0;
 $listCount = $listCount ?? 0;
 $untranslatedCount = $untranslatedCount ?? 0;
+$listlessCount = $listlessCount ?? 0;
+$duplicateGroupCount = $duplicateGroupCount ?? 0;
+$duplicateWordCount = $duplicateWordCount ?? 0;
 $practiceActive = $practiceActive ?? false;
 $practiceProgress = $practiceProgress ?? 0;
 $practiceTotal = $practiceTotal ?? 0;
@@ -105,6 +111,39 @@ $navItems = [
             <div class="hero-word">palabra</div>
         </div>
     </section>
+
+    <div class="home-section-heading">
+        <span>Nog te doen</span>
+        <small>Direct naar je inboxen</small>
+    </div>
+
+    <?php if ($listlessCount + $untranslatedCount + $duplicateGroupCount === 0): ?>
+        <div class="alert alert-success">Alles bijgewerkt — geen openstaande woorden. 🎉</div>
+    <?php else: ?>
+    <div class="list-group home-todo mb-4">
+        <?php if ($listlessCount > 0): ?>
+        <?= Html::a(
+            "📥 <strong>{$listlessCount} zonder lijst</strong><span>wijs een lijst toe</span>",
+            ['/woord', 'WordSearch' => ['chapter_id' => '0']],
+            ['class' => 'list-group-item list-group-item-action']
+        ) ?>
+        <?php endif; ?>
+        <?php if ($untranslatedCount > 0): ?>
+        <?= Html::a(
+            "✏️ <strong>{$untranslatedCount} onvertaald</strong><span>vul Nederlands in</span>",
+            ['/woord/onvertaald'],
+            ['class' => 'list-group-item list-group-item-action']
+        ) ?>
+        <?php endif; ?>
+        <?php if ($duplicateGroupCount > 0): ?>
+        <?= Html::a(
+            "👯 <strong>{$duplicateGroupCount} dubbele " . ($duplicateGroupCount === 1 ? 'vorm' : 'vormen') . " ({$duplicateWordCount} woorden)</strong><span>homoniemen of dubbelen opruimen</span>",
+            ['/woord/dubbelen'],
+            ['class' => 'list-group-item list-group-item-action']
+        ) ?>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
 
     <div class="home-section-heading">
         <span>Wat wil je doen?</span>
