@@ -30,6 +30,7 @@ class PracticeController extends Controller
                         'repeat' => ['POST'],
                         'stop' => ['POST'],
                         'practice-word' => ['POST'],
+                        'reset-stat' => ['POST'],
                     ],
                 ],
             ]
@@ -308,6 +309,7 @@ class PracticeController extends Controller
             $wordStatistic->incorrect_count += 1;
         }
 
+        $wordStatistic->last_practiced_at = time();
         $wordStatistic->save(false);
 
         $practice['results'] = $practice['results'] ?? [];
@@ -476,6 +478,29 @@ class PracticeController extends Controller
             $chapterId = '';
         }
 
+        $dir = Yii::$app->request->get('dir', '');
+        if ($dir === '1' || $dir === '0') {
+            $query->andWhere(['word_statistic.nl_to_sp' => (int) $dir]);
+        } else {
+            $dir = '';
+        }
+
+        // Summary over the filtered set (not just the page).
+        $sumRow = (clone $query)
+            ->select([
+                'answers' => 'SUM({{%word_statistic}}.[[correct_count]] + {{%word_statistic}}.[[incorrect_count]])',
+                'good' => 'SUM({{%word_statistic}}.[[correct_count]])',
+                'words' => 'COUNT(DISTINCT {{%word_statistic}}.[[word_id]])',
+            ])
+            ->asArray()
+            ->one();
+        $summary = [
+            'answers' => (int) ($sumRow['answers'] ?? 0),
+            'good' => (int) ($sumRow['good'] ?? 0),
+            'words' => (int) ($sumRow['words'] ?? 0),
+        ];
+        $summary['percent'] = $summary['answers'] > 0 ? round(100 * $summary['good'] / $summary['answers']) : null;
+
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => ['pageSize' => 20],
@@ -504,6 +529,7 @@ class PracticeController extends Controller
                         'desc' => ['success' => SORT_DESC],
                         'label' => 'Succes %',
                     ],
+                    'last_practiced_at' => ['label' => 'Laatst'],
                 ],
             ],
         ]);
@@ -516,6 +542,25 @@ class PracticeController extends Controller
                 ->orderBy(['name' => SORT_ASC])
                 ->indexBy('id')
                 ->column(),
+            'dir' => $dir,
+            'summary' => $summary,
         ]);
+    }
+
+    /**
+     * Deletes one word's statistics (fresh start for that word+direction).
+     * @param int $id statistic ID
+     * @return Response
+     */
+    public function actionResetStat($id)
+    {
+        $stat = WordStatistic::findOne((int) $id);
+        $chapterId = Yii::$app->request->post('chapter_id', '');
+        $dir = Yii::$app->request->post('dir', '');
+        if ($stat !== null) {
+            $stat->delete();
+            Yii::$app->session->setFlash('success', 'Statistieken gewist — dit woord begint opnieuw.');
+        }
+        return $this->redirect(['stats', 'chapter_id' => $chapterId, 'dir' => $dir]);
     }
 }

@@ -72,7 +72,8 @@ $config = [
                 'oefenen/oefening' => 'practice/practice',
                 'oefenen/woord/<id:\d+>' => 'practice/practice-word',
                 'oefenen/resultaat' => 'practice/result',
-                'oefenen/statistieken' => 'practice/stats'
+                'oefenen/statistieken' => 'practice/stats',
+                'oefenen/statistieken/wis/<id:\d+>' => 'practice/reset-stat',
                 
             ],
         ],
