@@ -56,7 +56,7 @@ $answerLabel = $nlToSp ? 'Spaans' : 'Nederlands';
             'lang' => $nlToSp ? 'es' : 'nl',
         ]) ?>
 
-    <?= $this->render('/word/_accent-keys', ['inputIds' => ['practiceanswer-answer']]) ?>
+    <?= $this->render('/word/_accent-keys', ['inputIds' => [Html::getInputId($answerModel, 'answer')]]) ?>
 
     <div class="form-group">
         <?= Html::submitButton('Controleer', [
