@@ -20,31 +20,39 @@ $this->params['breadcrumbs'][] = $this->title;
     <p class="text-muted">
         <?= $groupCount ?> <?= $groupCount === 1 ? 'vorm' : 'vormen' ?> in <?= $wordCount ?> <?= $wordCount === 1 ? 'woord' : 'woorden' ?>.
         Vormen met verschillende betekenissen zijn homoniemen (oefenen accepteert elke betekenis);
-        identieke rijen kun je via Wis opruimen.
+        gedeelde vormen of vertalingen overlappen; identieke rijen kun je via Wis opruimen.
     </p>
 
     <?php if (empty($groups)): ?>
         <div class="alert alert-success">Geen dubbele vormen gevonden.</div>
     <?php endif; ?>
 
-    <?php foreach ($groups as $group): ?>
+    <?php foreach ($groups as $term => $group): ?>
         <?php
+        $spanishForms = [];
         $meanings = [];
         foreach ($group as $word) {
             /** @var Word $word */
+            $form = mb_strtolower(trim((string) $word->spanish));
+            if (!in_array($form, $spanishForms)) {
+                $spanishForms[] = $form;
+            }
             $dutch = trim((string) $word->dutch);
             $meaning = $dutch !== '' ? $dutch : '(nog onvertaald)';
             if (!in_array($meaning, $meanings)) {
                 $meanings[] = $meaning;
             }
         }
-        $isHomonym = count($meanings) > 1;
+        $sameForm = count($spanishForms) === 1;
+        $isHomonym = $sameForm && count($meanings) > 1;
         ?>
         <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <strong><?= Html::encode($group[0]->spanish) ?></strong>
+            <div class="card-header d-flex justify-content-between align-items-center gap-2">
+                <strong><?= Html::encode($term) ?></strong>
                 <?php if ($isHomonym): ?>
                     <span class="badge bg-info text-dark">Homoniemen: <?= Html::encode(implode(' · ', $meanings)) ?></span>
+                <?php elseif (!$sameForm): ?>
+                    <span class="badge bg-secondary">Overlappend (<?= count($group) ?>×)</span>
                 <?php else: ?>
                     <span class="badge bg-warning text-dark">Dubbel (<?= count($group) ?>×)</span>
                 <?php endif; ?>

@@ -292,36 +292,54 @@ class Word extends ActiveRecord
     }
 
     /**
-     * Groups Spanish forms occurring in more than one row ("doubles"):
-     * homonyms with different meanings as well as exact duplicates.
+     * Groups rows sharing a word form ("doubles"): exact duplicates,
+     * homonyms with different meanings, overlapping comma-parts
+     * (e.g. "hola,dia, buenas" vs "hola") and shared translations
+     * (e.g. "bonito" and "hermoso" both meaning "mooi").
      * Grouping uses the accent-lenient form, so "pasion" and "pasión"
-     * land in one group, while "ano" and "año" stay apart.
-     * Sorted by group size (desc), then form (asc).
-     * @return array normalized form => Word[] (each 2+ rows)
+     * land in one group, while "ano" and "año" stay apart. Tiny
+     * fragments (< 2 chars) are skipped as noise.
+     * Sorted by group size (desc), then term (asc).
+     * @return array shared term => Word[] (each 2+ distinct rows)
      */
     public static function findDuplicateGroups()
     {
-        $groups = [];
+        $byTerm = [];
         foreach (self::find()->all() as $word) {
-            $key = self::normalizeAnswer($word->spanish);
-            if ($key === '') {
-                continue;
+            foreach (self::duplicateTerms($word) as $term) {
+                $byTerm[$term][$word->id] = $word;
             }
-            $groups[$key][] = $word;
         }
 
-        $groups = array_filter($groups, function ($group) {
+        $groups = array_filter($byTerm, function ($group) {
             return count($group) > 1;
         });
-        uasort($groups, function ($a, $b) {
-            $bySize = count($b) <=> count($a);
-            if ($bySize !== 0) {
-                return $bySize;
-            }
-            return mb_strtolower($a[0]->spanish) <=> mb_strtolower($b[0]->spanish);
+        uksort($groups, function ($a, $b) use ($groups) {
+            $bySize = count($groups[$b]) <=> count($groups[$a]);
+            return $bySize !== 0 ? $bySize : $a <=> $b;
         });
 
         return $groups;
+    }
+
+    /**
+     * Matchable terms of one row: full forms plus comma-separated parts,
+     * on both the Spanish and the Dutch side.
+     * @param Word $word
+     * @return string[] unique normalized terms
+     */
+    protected static function duplicateTerms(Word $word)
+    {
+        $terms = [];
+        foreach ([$word->spanish, $word->dutch] as $value) {
+            foreach (explode(',', (string) $value) as $part) {
+                $term = self::normalizeAnswer($part);
+                if ($term !== '' && mb_strlen($term) >= 2 && !in_array($term, $terms)) {
+                    $terms[] = $term;
+                }
+            }
+        }
+        return $terms;
     }
 
     /**
