@@ -17,10 +17,19 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?= Html::a('Wijzig', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
+        <?php
+        $wordCount = (int) $model->countWordsOfChapter($model->id);
+        $deleteConfirm = "Lijst '{$model->name}' wissen?";
+        if ($wordCount === 1) {
+            $deleteConfirm .= ' Ook het 1 woord in deze lijst wordt verwijderd.';
+        } elseif ($wordCount > 1) {
+            $deleteConfirm .= " Ook de {$wordCount} woorden in deze lijst worden verwijderd.";
+        }
+        ?>
         <?= Html::a('Wis', ['delete', 'id' => $model->id], [
             'class' => 'btn btn-danger',
             'data' => [
-                'confirm' => 'Are you sure you want to delete this item?',
+                'confirm' => $deleteConfirm,
                 'method' => 'post',
             ],
         ]) ?>

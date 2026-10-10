@@ -412,6 +412,50 @@ class WordController extends Controller
     }
 
     /**
+     * Shows an overview of 'double' words: Spanish forms occurring in more
+     * than one row, either as homonyms (different meanings, e.g. "camino":
+     * de weg / ik loop) or as exact duplicate entries. Grouping uses the
+     * accent-lenient form, so "pasion" and "pasión" land in one group,
+     * while "ano" and "año" stay apart (ñ is a distinct letter).
+     * @return string
+     */
+    public function actionDuplicates()
+    {
+        $words = Word::find()->with('chapter')->all();
+
+        $groups = [];
+        foreach ($words as $word) {
+            $key = Word::normalizeAnswer($word->spanish);
+            if ($key === '') {
+                continue;
+            }
+            $groups[$key][] = $word;
+        }
+
+        $groups = array_filter($groups, function ($group) {
+            return count($group) > 1;
+        });
+        uasort($groups, function ($a, $b) {
+            $bySize = count($b) <=> count($a);
+            if ($bySize !== 0) {
+                return $bySize;
+            }
+            return mb_strtolower($a[0]->spanish) <=> mb_strtolower($b[0]->spanish);
+        });
+
+        $wordCount = 0;
+        foreach ($groups as $group) {
+            $wordCount += count($group);
+        }
+
+        return $this->render('duplicates', [
+            'groups' => $groups,
+            'groupCount' => count($groups),
+            'wordCount' => $wordCount,
+        ]);
+    }
+
+    /**
      * Finds the Word model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param int $id ID

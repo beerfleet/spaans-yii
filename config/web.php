@@ -66,6 +66,7 @@ $config = [
                 'woord/bekijk/<id:\d+>' => 'word/view',
                 'woord/wis/<id:\d+>' => 'word/delete',
                 'woord/onvertaald' => 'word/list-untranslated',
+                'woord/dubbelen' => 'word/duplicates',
                 'woord/bulk-vertaal' => 'word/bulk-translate',
                 'oefenen' => 'practice/start',
                 'oefenen/oefening' => 'practice/practice',

@@ -6,12 +6,24 @@ use yii\grid\GridView;
 
 /** @var yii\web\View $this */
 /** @var yii\data\ActiveDataProvider $dataProvider */
+/** @var string|int $chapterId selected list filter ('' = all, 0 = no list) */
+/** @var array $chapterList id => name */
 
 $this->title = 'Statistieken';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
 <h1><?= Html::encode($this->title) ?></h1>
+
+<?= Html::beginForm(['stats'], 'get', ['class' => 'row row-cols-auto g-2 align-items-center mb-3']) ?>
+<?= Html::dropDownList(
+    'chapter_id',
+    (string) ($chapterId ?? ''),
+    [0 => '— Zonder lijst —'] + ($chapterList ?? []),
+    ['prompt' => 'Alle lijsten', 'class' => 'form-control']
+) ?>
+<?= Html::submitButton('Filteren', ['class' => 'btn btn-primary']) ?>
+<?= Html::endForm() ?>
 
 <?= GridView::widget([
     'dataProvider' => $dataProvider,

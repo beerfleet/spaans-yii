@@ -382,16 +382,26 @@ class PracticeController extends Controller
     }
 
     /**
-     * Action to display statistics.
+     * Action to display statistics, optionally filtered by list.
+     * Filter value 0 means "no list" (words practiced without one).
      */
     public function actionStats()
     {
+        $chapterId = Yii::$app->request->get('chapter_id', '');
         $query = WordStatistic::find()
             ->select([
                 '{{%word_statistic}}.*',
                 'success' => new \yii\db\Expression('ROUND(100 * {{%word_statistic}}.[[correct_count]] / NULLIF({{%word_statistic}}.[[correct_count]] + {{%word_statistic}}.[[incorrect_count]], 0))'),
             ])
             ->joinWith('word');
+
+        if ((string) $chapterId === '0') {
+            $query->andWhere(['word.chapter_id' => null]);
+        } elseif ($chapterId !== '' && $chapterId !== null && ctype_digit((string) $chapterId)) {
+            $query->andWhere(['word.chapter_id' => (int) $chapterId]);
+        } else {
+            $chapterId = '';
+        }
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -427,6 +437,12 @@ class PracticeController extends Controller
 
         return $this->render('stats', [
             'dataProvider' => $dataProvider,
+            'chapterId' => $chapterId,
+            'chapterList' => Chapter::find()
+                ->select(['name'])
+                ->orderBy(['name' => SORT_ASC])
+                ->indexBy('id')
+                ->column(),
         ]);
     }
 }

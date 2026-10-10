@@ -55,6 +55,7 @@ $items = [
             ['label' => 'Nieuw woord', 'url' => ['/word/create']],
             ['label' => 'Meerdere woorden', 'url' => ['/word/create-multiple']],
             ['label' => 'Onvertaalde woorden', 'url' => ['/word/list-untranslated']],
+            ['label' => 'Dubbele woorden', 'url' => ['/woord/dubbelen']],
         ],
     ],
     [
