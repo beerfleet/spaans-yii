@@ -48,15 +48,28 @@ class ChapterController extends Controller
     }
 
     /**
-     * Displays a single Chapter model.
+     * Displays a single Chapter model as a hub: its words with translation
+     * progress, links to manage them, and buttons to practice this list.
      * @param int $id ID
      * @return string
      * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionView($id)
     {
+        $model = $this->findModel($id);
+        $words = $model->getWords()->orderBy(['spanish' => SORT_ASC])->all();
+
+        $translated = 0;
+        foreach ($words as $word) {
+            if (trim((string) $word->dutch) !== '') {
+                $translated++;
+            }
+        }
+
         return $this->render('view', [
-            'model' => $this->findModel($id),
+            'model' => $model,
+            'words' => $words,
+            'translatedCount' => $translated,
         ]);
     }
 

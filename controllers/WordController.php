@@ -115,6 +115,7 @@ class WordController extends Controller
             }
         } else {
             $model->loadDefaultValues();
+            $model->load($this->request->queryParams); // Allows preselecting, e.g. chapter from a list page.
         }
 
         return $this->render('create', [
