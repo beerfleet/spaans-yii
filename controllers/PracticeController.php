@@ -235,12 +235,18 @@ class PracticeController extends Controller
             return $this->redirect(['practice']);
         }
 
+        // Show a single random variant of multi-alternative prompts.
+        $question = $word->pickPromptVariant((bool) $practice['nl_to_sp']);
+        $practice['shown'][$position] = $question;
+        $session->set('practice', $practice);
+
         return $this->render('practice', [
             'word' => $word,
             'nlToSp' => $practice['nl_to_sp'],
             'progress' => $position + 1,
             'total' => count($wordIds),
             'answerModel' => $answerModel,
+            'question' => $question,
             'meaningsCount' => $word->countPracticeMeanings((bool) $practice['nl_to_sp']),
         ]);
     }
@@ -307,7 +313,7 @@ class PracticeController extends Controller
         $practice['results'] = $practice['results'] ?? [];
         $practice['results'][] = [
             'word_id' => $word->id,
-            'prompt' => (string) $word->getWordBasedOnDirection((bool) $practice['nl_to_sp']),
+            'prompt' => (string) ($practice['shown'][$practice['position']] ?? $word->getWordBasedOnDirection((bool) $practice['nl_to_sp'])),
             'given' => trim($answerModel->answer),
             'accepted' => $acceptedAnswers,
             'correct' => $isCorrect,

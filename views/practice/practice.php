@@ -11,6 +11,7 @@ use yii\widgets\ActiveForm;
 /** @var int $total */
 /** @var app\models\PracticeAnswer $answerModel */
 /** @var int $meaningsCount */
+/** @var string $question single presented variant (multi-alternatives are quizzed one at a time) */
 
 $this->title = 'Oefenen';
 $this->params['breadcrumbs'][] = [
@@ -19,7 +20,7 @@ $this->params['breadcrumbs'][] = [
 ];
 $this->params['breadcrumbs'][] = $this->title;
 
-$question = $nlToSp ? $word->dutch : $word->spanish;
+$question = $question ?? ($nlToSp ? $word->dutch : $word->spanish);
 $answerLabel = $nlToSp ? 'Spaans' : 'Nederlands';
 ?>
 

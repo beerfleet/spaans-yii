@@ -247,6 +247,31 @@ class Word extends ActiveRecord
     }
 
     /**
+     * Picks one random variant of the practice prompt. Rows may hold
+     * comma-separated alternatives (e.g. "feliz, contento, contenta");
+     * quizzing a single variant keeps the prompt readable instead of
+     * showing (and giving away) the whole list. Answer acceptance is
+     * unaffected: every counterpart still counts.
+     * @param bool $nl_to_sp true: prompt is Dutch, false: prompt is Spanish
+     * @return string
+     */
+    public function pickPromptVariant(bool $nl_to_sp)
+    {
+        $full = (string) $this->getWordBasedOnDirection($nl_to_sp);
+        $parts = [];
+        foreach (explode(',', $full) as $part) {
+            $part = trim($part);
+            if ($part !== '') {
+                $parts[] = $part;
+            }
+        }
+        if (empty($parts)) {
+            return $full;
+        }
+        return $parts[array_rand($parts)];
+    }
+
+    /**
      * Normalizes an answer for lenient comparison: lowercased, accents
      * stripped, but ñ/Ñ kept intact. In Spanish ñ is a distinct letter,
      * not an accented n (año/year vs ano/anus), so it stays strict.
