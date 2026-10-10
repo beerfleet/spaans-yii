@@ -64,7 +64,7 @@ $this->params['breadcrumbs'][] = $this->title;
                             <tr>
                                 <td><?= Html::encode($word->spanish) ?></td>
                                 <td><?= $word->dutch !== null && trim($word->dutch) !== '' ? Html::encode($word->dutch) : '<span class="text-muted">—</span>' ?></td>
-                                <td><?= $word->listLabel !== null ? Html::encode($word->listLabel) : '<span class="text-muted">—</span>' ?></td>
+                                <td><?= $word->getListsText() !== null ? Html::encode($word->getListsText()) : '<span class="text-muted">—</span>' ?></td>
                                 <td class="text-end text-nowrap">
                                     <?= Html::a('Bekijk', ['view', 'id' => $word->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
                                     <?= Html::a('Wijzig', ['update', 'id' => $word->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>

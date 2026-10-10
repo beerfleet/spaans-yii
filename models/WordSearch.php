@@ -12,12 +12,20 @@ use app\models\Word;
 class WordSearch extends Word
 {
     /**
+     * List filter value from the grid: '' = all, '0' = no list, id = one list.
+     * Declared here because Word no longer has a chapter_id column.
+     * @var string|int|null
+     */
+    public $chapter_id;
+
+    /**
      * {@inheritdoc}
      */
     public function rules()
     {
         return [
-            [['id', 'chapter_id', 'created_at', 'updated_at'], 'integer'],
+            [['id', 'created_at', 'updated_at'], 'integer'],
+            [['chapter_id'], 'integer'],
             [['dutch', 'spanish'], 'safe'],
         ];
     }
@@ -32,16 +40,35 @@ class WordSearch extends Word
     }
 
     /**
-     * Applies the list filter. Filter value 0 means "no list"
-     * (chapter_id IS NULL), so list-less words can be found too.
+     * Builds an EXISTS subquery for the junction, correlated to the outer
+     * word query and optionally pinned to specific lists.
+     * @param int|int[]|null $chapterIds null = any link, int(-array) = these lists
+     * @return \yii\db\Query
+     */
+    protected static function junctionExists($chapterIds)
+    {
+        $sub = (new \yii\db\Query())
+            ->select(['cw.word_id'])
+            ->from(['cw' => '{{%chapter_word}}'])
+            ->where('cw.word_id = {{%word}}.[[id]]');
+        if ($chapterIds !== null) {
+            $sub->andWhere(['cw.chapter_id' => $chapterIds]);
+        }
+        return $sub;
+    }
+
+    /**
+     * Applies the list filter via the chapter_word junction.
+     * Filter value 0 means "no list" (no junction rows), so list-less
+     * words can be found too.
      * @param \yii\db\ActiveQuery $query
      */
     protected function applyChapterFilter($query)
     {
         if ((string) $this->chapter_id === '0') {
-            $query->andWhere(['chapter_id' => null]);
-        } else {
-            $query->andFilterWhere(['chapter_id' => $this->chapter_id]);
+            $query->andWhere(['not exists', self::junctionExists(null)]);
+        } elseif ($this->chapter_id !== '' && $this->chapter_id !== null) {
+            $query->andWhere(['exists', self::junctionExists((int) $this->chapter_id)]);
         }
     }
 
@@ -55,7 +82,7 @@ class WordSearch extends Word
      */
     public function search($params, $formName = null)
     {
-        $query = Word::find();
+        $query = Word::find()->with('chapters');
 
         // add conditions that should always apply here
 
@@ -87,7 +114,7 @@ class WordSearch extends Word
 
     public function searchUntranslated($params, $formName = null)
     {
-        $query = Word::find()->where(['or', ['dutch' => null], ['dutch' => '']])->with('chapter');
+        $query = Word::find()->where(['or', ['dutch' => null], ['dutch' => '']])->with('chapters');
 
         // add conditions that should always apply here
 
@@ -127,7 +154,7 @@ class WordSearch extends Word
      */
     public function searchByChapter($chapter_id, $params, $formName = null)
     {
-        $query = Word::find()->where(['chapter_id' => $chapter_id]);
+        $query = Word::find()->where(['exists', self::junctionExists((int) $chapter_id)])->with('chapters');
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,

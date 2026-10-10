@@ -81,7 +81,7 @@ class WordController extends Controller
             'homonyms' => Word::find()
                 ->where(['spanish' => $model->spanish])
                 ->andWhere(['not', ['id' => $model->id]])
-                ->with('chapter')
+                ->with('chapters')
                 ->all(),
             'statistics' => \app\models\WordStatistic::find()
                 ->where(['word_id' => $model->id])
@@ -147,12 +147,12 @@ class WordController extends Controller
 
                 // Confirm step: save checked rows.
                 if ($this->request->post('confirm') !== null) {
-                    $chapterId = $this->resolveBulkChapterId($model);
-                    [$saved, $skipped] = $this->saveBulkPreview($preview, $chapterId);
+                    $chapterIds = $model->getChapterIds();
+                    [$saved, $skipped] = $this->saveBulkPreview($preview, $chapterIds);
                     $this->flashBulkResult($saved, $skipped);
 
-                    if ($chapterId !== null) {
-                        return $this->redirect(['list-untranslated', 'WordSearch[chapter_id]' => $chapterId]);
+                    if (count($chapterIds) === 1) {
+                        return $this->redirect(['list-untranslated', 'WordSearch[chapter_id]' => $chapterIds[0]]);
                     }
                     return $this->redirect(['list-untranslated']);
                 }
@@ -163,18 +163,6 @@ class WordController extends Controller
             'model' => $model,
             'preview' => $preview,
         ]);
-    }
-
-    /**
-     * Normalizes the bulk form's list choice: no selection becomes NULL.
-     * @param Word $model bulk form model in the bulkForm scenario
-     * @return int|null
-     */
-    private function resolveBulkChapterId(Word $model)
-    {
-        return $model->chapter_id === '' || $model->chapter_id === null
-            ? null
-            : (int) $model->chapter_id;
     }
 
     /**
@@ -192,7 +180,7 @@ class WordController extends Controller
         $existingByForm = [];
         $existingByNormalized = [];
         $existingWords = Word::find()
-            ->with('chapter')
+            ->with('chapters')
             ->where(['spanish' => array_values(array_unique($lines))])
             ->all();
         foreach ($existingWords as $existing) {
@@ -200,8 +188,8 @@ class WordController extends Controller
             $meaning = $existing->dutch !== null && trim((string) $existing->dutch) !== ''
                 ? (string) $existing->dutch
                 : '(nog onvertaald)';
-            if ($existing->listLabel !== null) {
-                $meaning .= ' [' . $existing->listLabel . ']';
+            if ($existing->getListsText() !== null) {
+                $meaning .= ' [' . $existing->getListsText() . ']';
             }
             $existingByForm[$key][] = $meaning;
             $existingByNormalized[Word::normalizeAnswer($key)][] = (string) $existing->spanish;
@@ -243,10 +231,10 @@ class WordController extends Controller
      * Unchecked boxes are absent from POST, so only explicitly checked
      * rows are saved (homonyms stay opt-in).
      * @param array $preview rows from buildBulkPreview()
-     * @param int|null $chapterId list for all new words
+     * @param int[] $chapterIds lists for all new words
      * @return int[] [saved, skipped]
      */
-    private function saveBulkPreview(array $preview, $chapterId)
+    private function saveBulkPreview(array $preview, array $chapterIds)
     {
         $checked = $this->request->post('add', []);
         $saved = 0;
@@ -261,7 +249,7 @@ class WordController extends Controller
                 $newWord = new Word();
                 $newWord->scenario = 'bulkCreate';
                 $newWord->spanish = $row['spanish'];
-                $newWord->chapter_id = $chapterId;
+                $newWord->chapterIds = $chapterIds;
                 if ($newWord->save()) {
                     $saved++;
                 } else {
@@ -328,8 +316,10 @@ class WordController extends Controller
     }
 
     /**
-     * Saves multiple translations + chapters from the untranslated list in one go.
-     * Expects POST data: Translation[id][dutch], Translation[id][chapter_id], returnUrl.
+     * Saves multiple translations + lists from the bulk grids in one go.
+     * Expects POST data: Translation[id][dutch], Translation[id][chapter_ids][],
+     * returnUrl. Lists are multi-select: the submitted set replaces the
+     * word's lists (empty selection clears them).
      * @return \yii\web\Response
      */
     public function actionBulkTranslate()
@@ -337,28 +327,56 @@ class WordController extends Controller
         $translations = $this->request->post('Translation', []);
         $returnUrl = $this->request->post('returnUrl', ['list-untranslated']);
 
+        // Validate all submitted list ids in one query.
+        $postedIds = [];
+        foreach ((array) $translations as $row) {
+            foreach ((array) ($row['chapter_ids'] ?? []) as $v) {
+                if ($v !== '' && $v !== null) {
+                    $postedIds[] = (int) $v;
+                }
+            }
+        }
+        $validIds = array_map('intval', \app\models\Chapter::find()
+            ->select(['id'])
+            ->where(['id' => array_values(array_unique($postedIds))])
+            ->column());
+
         $saved = 0;
         $failed = 0;
+        // Current lists for all posted words in one query.
+        $oldByWord = [];
+        foreach ((new \yii\db\Query())->select(['word_id', 'chapter_id'])->from('{{%chapter_word}}')->where(['word_id' => array_map('intval', array_keys((array) $translations))])->all() as $link) {
+            $oldByWord[(int) $link['word_id']][] = (int) $link['chapter_id'];
+        }
         foreach ($translations as $id => $row) {
             $word = Word::findOne((int) $id);
             if ($word === null) {
                 continue;
             }
-            // Partial update: dutch/chapter may legitimately stay empty here,
+            // Partial update: dutch/lists may legitimately stay empty here,
             // so validate with the lenient bulkTranslate scenario instead of
             // the default one (which requires dutch).
             $word->scenario = 'bulkTranslate';
             $newDutch = isset($row['dutch']) ? trim((string) $row['dutch']) : '';
-            $newChapterId = isset($row['chapter_id']) && $row['chapter_id'] !== '' ? (int) $row['chapter_id'] : null;
-            $oldChapterId = $word->chapter_id === null || $word->chapter_id === '' ? null : (int) $word->chapter_id;
+            $newChapterIds = [];
+            foreach ((array) ($row['chapter_ids'] ?? []) as $v) {
+                if ($v !== '' && $v !== null && in_array((int) $v, $validIds, true)) {
+                    $newChapterIds[] = (int) $v;
+                }
+            }
+            $newChapterIds = array_values(array_unique($newChapterIds));
+            $oldChapterIds = $oldByWord[(int) $id] ?? [];
+            sort($oldChapterIds);
+            $compared = $newChapterIds;
+            sort($compared);
 
             $changed = false;
             if ($newDutch !== '' && $newDutch !== (string) $word->dutch) {
                 $word->dutch = $newDutch;
                 $changed = true;
             }
-            if ($newChapterId !== $oldChapterId) {
-                $word->chapter_id = $newChapterId;
+            if ($compared !== $oldChapterIds) {
+                $word->chapterIds = $newChapterIds;
                 $changed = true;
             }
             if ($changed) {
@@ -386,9 +404,9 @@ class WordController extends Controller
     }
 
     /**
-     * Assigns selected words to one list in a single action — e.g. a pile
-     * of list-less words from the "no list" filter. Value 'none' removes
-     * words from their list again.
+     * Links selected words to one list in a single action — e.g. a pile of
+     * list-less words from the "no list" filter. Existing lists are kept;
+     * value 'none' instead removes words from all their lists.
      * Expects POST data: assign_ids[], assign_list, returnUrl.
      * @return \yii\web\Response
      */
@@ -407,9 +425,9 @@ class WordController extends Controller
             return $this->redirect($returnUrl);
         }
         if ($target === 'none') {
-            $chapterId = null;
+            $chapterIds = [];
         } elseif (ctype_digit((string) $target) && \app\models\Chapter::findOne((int) $target) !== null) {
-            $chapterId = (int) $target;
+            $chapterIds = [(int) $target];
         } else {
             Yii::$app->session->setFlash('warning', 'Onbekende lijst gekozen.');
             return $this->redirect($returnUrl);
@@ -418,15 +436,20 @@ class WordController extends Controller
         $saved = 0;
         $skipped = 0;
         foreach (Word::findAll(['id' => $ids]) as $word) {
-            // Lenient scenario: assigning a list must also work for
+            // Lenient scenario: assigning lists must also work for
             // untranslated words (dutch may stay empty).
             $word->scenario = 'bulkTranslate';
-            $oldChapterId = $word->chapter_id === null || $word->chapter_id === '' ? null : (int) $word->chapter_id;
-            if ($chapterId === $oldChapterId) {
+            $oldChapterIds = $word->getChapterIds();
+            sort($oldChapterIds);
+            $newChapterIds = $chapterIds === []
+                ? []
+                : array_values(array_unique(array_merge($oldChapterIds, $chapterIds)));
+            sort($newChapterIds);
+            if ($newChapterIds === $oldChapterIds) {
                 $skipped++;
                 continue;
             }
-            $word->chapter_id = $chapterId;
+            $word->chapterIds = $newChapterIds;
             if ($word->save()) {
                 $saved++;
             } else {

@@ -31,8 +31,8 @@ $answerLabel = $nlToSp ? 'Spaans' : 'Nederlands';
     <div class="card mb-4">
         <div class="card-body text-center">
             <h2><?= Html::encode($question) ?></h2>
-            <?php if ($word->listLabel !== null): ?>
-                <p class="text-muted mb-1"><?= Html::encode($word->listLabel) ?></p>
+            <?php if ($word->getListsText() !== null): ?>
+                <p class="text-muted mb-1"><?= Html::encode($word->getListsText()) ?></p>
             <?php endif; ?>
             <?php if (($meaningsCount ?? 1) > 1): ?>
                 <span class="badge bg-info text-dark">Meerdere betekenissen mogelijk — één goed antwoord volstaat</span>

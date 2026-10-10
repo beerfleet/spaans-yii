@@ -80,6 +80,7 @@ $suggestions = Word::suggestLists($dataProvider->getModels());
             [
                 'attribute' => 'chapter_id',
                 'label' => 'Lijst',
+                'enableSorting' => false,
                 'filter' => Html::activeDropDownList(
                     $searchModel,
                     'chapter_id',
@@ -88,13 +89,13 @@ $suggestions = Word::suggestLists($dataProvider->getModels());
                 ),
                 'content' => function ($model) use ($chapterList, $suggestions) {
                     /** @var Word $model */
-                    $html = Html::dropDownList(
-                        "Translation[{$model->id}][chapter_id]",
-                        $model->chapter_id,
+                    $html = Html::listBox(
+                        "Translation[{$model->id}][chapter_ids]",
+                        $model->getChapterIds(),
                         $chapterList,
-                        ['prompt' => '—', 'class' => 'form-control form-control-sm']
+                        ['multiple' => true, 'size' => 3, 'class' => 'form-control form-control-sm']
                     );
-                    if ($model->chapter_id === null && isset($suggestions[$model->id])) {
+                    if (empty($model->getChapterIds()) && isset($suggestions[$model->id])) {
                         $html .= '<div class="small text-muted">ook in: ' . Html::encode(implode(', ', $suggestions[$model->id])) . '</div>';
                     }
                     return $html;

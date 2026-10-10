@@ -84,7 +84,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <p class="text-muted">
             Nog geen woorden in deze lijst.
             <?= Html::a('Voeg woorden toe', ['word/create-multiple']) ?> (kies daarna deze lijst)
-            of <?= Html::a('maak er één', ['word/create', 'Word' => ['chapter_id' => $model->id]]) ?>.
+            of <?= Html::a('maak er één', ['word/create', 'Word' => ['chapterIds' => [$model->id]]]) ?>.
         </p>
     <?php else: ?>
         <div class="table-responsive">

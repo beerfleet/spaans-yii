@@ -5,18 +5,18 @@ namespace app\models;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use app\models\WordStatistic;
+use Yii;
 
 /**
  * This is the model class for table "word".
  *
  * @property int $id
- * @property int|null $chapter_id
  * @property string|null $dutch
  * @property string $spanish
  * @property int $created_at
  * @property int $updated_at
  *
- * @property Chapter $chapter
+ * @property Chapter[] $chapters M-N lists via chapter_word
  */
 class Word extends ActiveRecord
 {
@@ -27,6 +27,13 @@ class Word extends ActiveRecord
      * @var string|null
      */
     public $bulkText;
+
+    /**
+     * Assigned list ids. Mass-assigned by forms (checkbox lists, multi
+     * selects); null means untouched, [] means explicitly list-less.
+     * @var int[]|null
+     */
+    private $_chapterIds;
 
     /**
      * {@inheritdoc}
@@ -41,43 +48,38 @@ class Word extends ActiveRecord
      */
     public function rules()
     {
+        $listRules = [
+            [['chapterIds'], 'each', 'rule' => ['integer']],
+            [['chapterIds'], 'exist', 'allowArray' => true, 'skipOnError' => true, 'targetClass' => Chapter::class, 'targetAttribute' => 'id'],
+        ];
+
         if ($this->scenario === 'bulkForm') {
-            return [
+            return array_merge([
                 [['bulkText'], 'required', 'message' => 'Het veld {attribute} is verplicht'],
                 [['bulkText'], 'string', 'max' => 20000],
-                [['chapter_id'], 'default', 'value' => null],
-                [['chapter_id'], 'integer'],
-                [['chapter_id'], 'exist', 'skipOnError' => true, 'targetClass' => Chapter::class, 'targetAttribute' => ['chapter_id' => 'id']],
-            ];
+            ], $listRules);
         }
 
         if ($this->scenario === 'bulkCreate') {
-            return [
+            return array_merge([
                 [['spanish'], 'required', 'message' => 'Het veld {attribute} is verplicht'],
-                [['chapter_id'], 'default', 'value' => null],
-                [['chapter_id', 'created_at', 'updated_at'], 'integer'],
+                [['created_at', 'updated_at'], 'integer'],
                 [['dutch', 'spanish'], 'string', 'max' => 255],
-                [['chapter_id'], 'exist', 'skipOnError' => true, 'targetClass' => Chapter::class, 'targetAttribute' => ['chapter_id' => 'id']],
-            ];
+            ], $listRules);
         }
 
         if ($this->scenario === 'bulkTranslate') {
-            // Untranslated list: dutch may stay empty, chapter may stay empty.
-            return [
-                [['chapter_id'], 'default', 'value' => null],
-                [['chapter_id'], 'integer'],
+            // Untranslated list: dutch may stay empty, lists may stay empty.
+            return array_merge([
                 [['dutch', 'spanish'], 'string', 'max' => 255],
-                [['chapter_id'], 'exist', 'skipOnError' => true, 'targetClass' => Chapter::class, 'targetAttribute' => ['chapter_id' => 'id']],
-            ];
+            ], $listRules);
         }
 
-        return [
+        return array_merge([
             [['spanish', 'dutch'], 'required', 'message' => 'Het veld {attribute} is verplicht'],
-            [['chapter_id'], 'default', 'value' => null],
-            [['chapter_id', 'created_at', 'updated_at'], 'integer'],
+            [['created_at', 'updated_at'], 'integer'],
             [['dutch', 'spanish'], 'string', 'max' => 255],
-            [['chapter_id'], 'exist', 'skipOnError' => true, 'targetClass' => Chapter::class, 'targetAttribute' => ['chapter_id' => 'id']],
-        ];
+        ], $listRules);
     }
 
     /**
@@ -103,7 +105,7 @@ class Word extends ActiveRecord
     {
         return [
             'id' => 'ID',
-            'chapter_id' => 'Lijst',
+            'chapterIds' => 'Lijsten',
             'spanish' => 'Spaans',
             'bulkText' => 'Spaans',
             'dutch' => 'Nederlands',
@@ -113,13 +115,75 @@ class Word extends ActiveRecord
     }
 
     /**
-     * Gets query for [[Chapter]].
-     *
+     * Assigned list ids. Lazy-loads the current junction rows on first read
+     * ([] for new records); the setter normalizes form input (drops the
+     * hidden "" Yii renders for empty checkbox lists).
+     * @return int[]
+     */
+    public function getChapterIds()
+    {
+        if ($this->_chapterIds === null) {
+            if ($this->isNewRecord) {
+                $this->_chapterIds = [];
+            } elseif ($this->isRelationPopulated('chapters')) {
+                $ids = [];
+                foreach ($this->chapters as $chapter) {
+                    $ids[] = (int) $chapter->id;
+                }
+                $this->_chapterIds = $ids;
+            } else {
+                $this->_chapterIds = array_map('intval', $this->getChapters()->select('{{%chapter}}.[[id]]')->column());
+            }
+        }
+        return $this->_chapterIds;
+    }
+
+    /**
+     * @param int|int[]|string|null $value
+     */
+    public function setChapterIds($value)
+    {
+        if ($value === null || $value === '') {
+            $this->_chapterIds = [];
+            return;
+        }
+        $ids = [];
+        foreach ((array) $value as $v) {
+            if ($v === '' || $v === null) {
+                continue;
+            }
+            $ids[] = (int) $v;
+        }
+        $this->_chapterIds = array_values(array_unique($ids));
+    }
+
+    /**
+     * Many-to-many lists via the chapter_word junction.
      * @return \yii\db\ActiveQuery
      */
-    public function getChapter()
+    public function getChapters()
     {
-        return $this->hasOne(Chapter::class, ['id' => 'chapter_id']);
+        return $this->hasMany(Chapter::class, ['id' => 'chapter_id'])
+            ->viaTable('{{%chapter_word}}', ['word_id' => 'id']);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+
+        $ids = $this->getChapterIds();
+        Yii::$app->db->createCommand()
+            ->delete('{{%chapter_word}}', ['word_id' => $this->id])
+            ->execute();
+        foreach ($ids as $chapterId) {
+            Yii::$app->db->createCommand()->insert('{{%chapter_word}}', [
+                'word_id' => $this->id,
+                'chapter_id' => $chapterId,
+            ])->execute();
+        }
     }
 
     /**
@@ -128,24 +192,10 @@ class Word extends ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios['bulkCreate'] = ['chapter_id', 'spanish', 'created_at', 'updated_at'];
-        $scenarios['bulkForm'] = ['chapter_id', 'bulkText'];
-        $scenarios['bulkTranslate'] = ['dutch', 'chapter_id'];
+        $scenarios['bulkCreate'] = ['chapterIds', 'spanish', 'created_at', 'updated_at'];
+        $scenarios['bulkForm'] = ['chapterIds', 'bulkText'];
+        $scenarios['bulkTranslate'] = ['dutch', 'chapterIds'];
         return $scenarios;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function beforeValidate()
-    {
-        // Empty dropdown selection becomes NULL (list-less word).
-        // NB: keep '0'/0 intact: WordSearch uses 0 as the "no list" filter value.
-        if ($this->chapter_id === '') {
-            $this->chapter_id = null;
-        }
-
-        return parent::beforeValidate();
     }
 
     /**
@@ -161,12 +211,19 @@ class Word extends ActiveRecord
     }
 
     /**
-     * Display name of the list this word belongs to, or null when list-less.
+     * Display names of all lists this word belongs to, or null when list-less.
      * @return string|null
      */
-    public function getListLabel()
+    public function getListsText()
     {
-        return $this->chapter ? $this->chapter->name : null;
+        if (empty($this->chapters)) {
+            return null;
+        }
+        $names = [];
+        foreach ($this->chapters as $chapter) {
+            $names[] = $chapter->name;
+        }
+        return implode(', ', $names);
     }
 
     /**
@@ -220,7 +277,7 @@ class Word extends ActiveRecord
     public static function findDuplicateGroups()
     {
         $groups = [];
-        foreach (self::find()->with('chapter')->all() as $word) {
+        foreach (self::find()->all() as $word) {
             $key = self::normalizeAnswer($word->spanish);
             if ($key === '') {
                 continue;
@@ -252,9 +309,24 @@ class Word extends ActiveRecord
      */
     public static function suggestLists(array $words)
     {
+        $ids = [];
+        foreach ($words as $word) {
+            $ids[] = (int) $word->id;
+        }
+        if (empty($ids)) {
+            return [];
+        }
+        // One query for all linked words on the page (avoids N+1).
+        $linked = array_map('intval', (new \yii\db\Query())
+            ->select(['word_id'])
+            ->distinct()
+            ->from('{{%chapter_word}}')
+            ->where(['word_id' => $ids])
+            ->column());
+
         $needles = [];
         foreach ($words as $word) {
-            if ($word->chapter_id !== null) {
+            if (in_array((int) $word->id, $linked, true)) {
                 continue;
             }
             $needles[$word->id] = $word;
@@ -281,18 +353,19 @@ class Word extends ActiveRecord
 
         $siblings = self::find()
             ->where($conditions)
-            ->andWhere(['not', ['chapter_id' => null]])
-            ->with('chapter')
+            ->with('chapters')
             ->all();
 
         $bySpanish = [];
         $byDutch = [];
         foreach ($siblings as $sibling) {
-            if ($sibling->chapter === null) {
+            if (empty($sibling->chapters)) {
                 continue;
             }
-            $bySpanish[self::normalizeAnswer($sibling->spanish)][] = $sibling->chapter->name;
-            $byDutch[mb_strtolower(trim((string) $sibling->dutch))][] = $sibling->chapter->name;
+            foreach ($sibling->chapters as $chapter) {
+                $bySpanish[self::normalizeAnswer($sibling->spanish)][] = $chapter->name;
+                $byDutch[mb_strtolower(trim((string) $sibling->dutch))][] = $chapter->name;
+            }
         }
 
         $suggestions = [];

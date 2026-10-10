@@ -70,13 +70,14 @@ class Chapter extends ActiveRecord
     }
 
     /**
-     * Gets query for [[Words]].
+     * Gets query for [[Words]] via the chapter_word junction.
      *
      * @return \yii\db\ActiveQuery
      */
     public function getWords()
     {
-        return $this->hasMany(Word::class, ['chapter_id' => 'id']);
+        return $this->hasMany(Word::class, ['id' => 'word_id'])
+            ->viaTable('{{%chapter_word}}', ['chapter_id' => 'id']);
     }
 
     /**

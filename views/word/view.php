@@ -40,8 +40,8 @@ $this->params['breadcrumbs'][] = $this->title;
                 'method' => 'post',
             ],
         ]) ?>
-        <?php if ($model->chapter_id !== null): ?>
-            <?= Html::a('Naar lijst', ['index-by-chapter', 'chapter_id' => $model->chapter_id], ['class' => 'btn btn-outline-secondary']) ?>
+        <?php if (!empty($model->getChapterIds())): ?>
+            <?= Html::a('Naar woorden', ['index'], ['class' => 'btn btn-outline-secondary']) ?>
         <?php endif; ?>
     </p>
 
@@ -64,11 +64,19 @@ $this->params['breadcrumbs'][] = $this->title;
         'model' => $model,
         'attributes' => [
             [
-                'attribute' => 'chapter_id',
+                'attribute' => 'chapterIds',
                 'format' => 'raw',
-                'value' => $model->chapter
-                    ? Html::a(Html::encode($model->listLabel), ['index-by-chapter', 'chapter_id' => $model->chapter_id])
-                    : '<span class="text-muted">—</span>',
+                'value' => function ($model) {
+                    /** @var \app\models\Word $model */
+                    if (empty($model->chapters)) {
+                        return '<span class="text-muted">—</span>';
+                    }
+                    $links = [];
+                    foreach ($model->chapters as $chapter) {
+                        $links[] = Html::a(Html::encode($chapter->name), ['index-by-chapter', 'chapter_id' => $chapter->id]);
+                    }
+                    return implode(', ', $links);
+                },
             ],
             'spanish',
             'dutch',
@@ -94,7 +102,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         <tr>
                             <td><?= Html::encode($other->spanish) ?></td>
                             <td><?= trim((string) $other->dutch) !== '' ? Html::encode($other->dutch) : '<span class="text-muted">—</span>' ?></td>
-                            <td><?= $other->listLabel !== null ? Html::encode($other->listLabel) : '<span class="text-muted">—</span>' ?></td>
+                            <td><?= $other->getListsText() !== null ? Html::encode($other->getListsText()) : '<span class="text-muted">—</span>' ?></td>
                             <td><?= Html::a('Bekijk', ['view', 'id' => $other->id], ['class' => 'btn btn-sm btn-outline-primary']) ?></td>
                         </tr>
                     <?php endforeach; ?>

@@ -26,14 +26,13 @@ if (is_array($preview)) {
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'chapter_id')->dropDownList(
+    <?= $form->field($model, 'chapterIds')->checkboxList(
         \app\models\Chapter::find()
             ->select(['name'])
             ->orderBy(['name' => SORT_ASC])
             ->indexBy('id')
-            ->column(),
-        ['prompt' => '— Geen lijst (later bepalen) —']
-    )->label("Lijst (optioneel)")->hint('Laat leeg als de woorden (nog) niet tot dezelfde lijst behoren. Je kunt de lijst later per woord invullen.') ?>
+            ->column()
+    )->label("Lijsten (optioneel)")->hint('Niets aanvinken mag ook: woorden zonder lijst krijgen later een plek.') ?>
 
     <?= $form->field($model, 'bulkText')->textarea(['rows' => 8, 'placeholder' => "buenos días\nmuchas gracias\nHola, ¿cómo estás?"])->label('Spaans')->hint('Eén uitdrukking per regel — ook zinnen met komma\'s blijven één record. Controleer het resultaat in de preview hieronder.') ?>
 

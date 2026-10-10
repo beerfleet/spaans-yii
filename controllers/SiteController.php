@@ -85,7 +85,12 @@ class SiteController extends Controller
         $untranslatedCount = (int) Word::find()
             ->where(['or', ['dutch' => null], ['dutch' => '']])
             ->count();
-        $listlessCount = (int) Word::find()->where(['chapter_id' => null])->count();
+        $listlessCount = (int) Word::find()
+            ->where(['not exists', (new \yii\db\Query())
+                ->select(['cw.word_id'])
+                ->from(['cw' => '{{%chapter_word}}'])
+                ->where('cw.word_id = {{%word}}.[[id]]')])
+            ->count();
 
         $duplicateGroups = Word::findDuplicateGroups();
         $duplicateGroupCount = count($duplicateGroups);

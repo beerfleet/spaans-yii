@@ -53,8 +53,9 @@ class PracticeController extends Controller
         // chapter_id => count explicitly instead.
         $counts = ArrayHelper::map(
             Word::findTranslatable()
-                ->select(['chapter_id', 'COUNT(*) AS n'])
-                ->groupBy(['chapter_id'])
+                ->select(['cw.chapter_id', 'COUNT(*) AS n'])
+                ->innerJoin(['cw' => '{{%chapter_word}}'], 'cw.word_id = {{%word}}.[[id]]')
+                ->groupBy(['cw.chapter_id'])
                 ->asArray()
                 ->all(),
             'chapter_id',
@@ -63,9 +64,10 @@ class PracticeController extends Controller
         $translatableTotal = (int) Word::findTranslatable()->count();
         $untranslatedCounts = ArrayHelper::map(
             Word::find()
-                ->select(['chapter_id', 'COUNT(*) AS n'])
+                ->select(['cw.chapter_id', 'COUNT(*) AS n'])
+                ->innerJoin(['cw' => '{{%chapter_word}}'], 'cw.word_id = {{%word}}.[[id]]')
                 ->where(['or', ['dutch' => null], ['dutch' => '']])
-                ->groupBy(['chapter_id'])
+                ->groupBy(['cw.chapter_id'])
                 ->asArray()
                 ->all(),
             'chapter_id',
@@ -77,13 +79,14 @@ class PracticeController extends Controller
         // Translated words without any practice history, per list.
         $freshCounts = ArrayHelper::map(
             Word::findTranslatable()
-                ->select(['chapter_id', 'COUNT(*) AS n'])
+                ->select(['cw.chapter_id', 'COUNT(*) AS n'])
+                ->innerJoin(['cw' => '{{%chapter_word}}'], 'cw.word_id = {{%word}}.[[id]]')
                 ->leftJoin(
                     ['wsu' => WordStatistic::tableName()],
                     'wsu.word_id = {{%word}}.[[id]]'
                 )
                 ->andWhere(['wsu.id' => null])
-                ->groupBy(['chapter_id'])
+                ->groupBy(['cw.chapter_id'])
                 ->asArray()
                 ->all(),
             'chapter_id',
@@ -143,7 +146,10 @@ class PracticeController extends Controller
             '{{%word}}.[[' . $promptCol . ']] AS prompt',
         ]);
         if (!$useAll) {
-            $query->andWhere(['chapter_id' => $model->chapters]);
+            $query->innerJoin(
+                ['cw' => '{{%chapter_word}}'],
+                'cw.word_id = {{%word}}.[[id]]'
+            )->andWhere(['cw.chapter_id' => $model->chapters]);
         }
         if ($model->only_unpracticed) {
             // Truly fresh words: no practice history in either direction.
@@ -340,7 +346,7 @@ class PracticeController extends Controller
 
         $nlToSp = Yii::$app->request->post('dir', 'nl') !== 'sp';
         Yii::$app->session->set('practice', [
-            'chapters' => $word->chapter_id === null ? [] : [(int) $word->chapter_id],
+            'chapters' => $word->getChapterIds(),
             'nl_to_sp' => $nlToSp,
             'word_ids' => [(int) $word->id],
             'position' => 0,
@@ -450,9 +456,16 @@ class PracticeController extends Controller
             ->joinWith('word');
 
         if ((string) $chapterId === '0') {
-            $query->andWhere(['word.chapter_id' => null]);
+            $query->andWhere(['not exists', (new \yii\db\Query())
+                ->select(['cw.word_id'])
+                ->from(['cw' => '{{%chapter_word}}'])
+                ->where('cw.word_id = {{%word}}.[[id]]')]);
         } elseif ($chapterId !== '' && $chapterId !== null && ctype_digit((string) $chapterId)) {
-            $query->andWhere(['word.chapter_id' => (int) $chapterId]);
+            $query->andWhere(['exists', (new \yii\db\Query())
+                ->select(['cw.word_id'])
+                ->from(['cw' => '{{%chapter_word}}'])
+                ->where('cw.word_id = {{%word}}.[[id]]')
+                ->andWhere(['cw.chapter_id' => (int) $chapterId])]);
         } else {
             $chapterId = '';
         }

@@ -12,14 +12,13 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'chapter_id')->dropDownList(
+    <?= $form->field($model, 'chapterIds')->checkboxList(
         \app\models\Chapter::find()
             ->select(['name'])
             ->orderBy(['name' => SORT_ASC])
             ->indexBy('id')
-            ->column(),
-        ['prompt' => '— Geen lijst (later bepalen) —']
-    )->label("Lijst (optioneel)") ?>
+            ->column()
+    )->label("Lijsten (optioneel)") ?>
 
     <?= $form->field($model, 'spanish')->textInput(['maxlength' => true])->label('Spaans') ?>
 
