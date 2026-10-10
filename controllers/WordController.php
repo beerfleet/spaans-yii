@@ -27,6 +27,7 @@ class WordController extends Controller
                     'actions' => [
                         'delete' => ['POST'],
                         'bulk-translate' => ['POST'],
+                        'bulk-assign' => ['POST'],
                     ],
                 ],
             ]
@@ -380,6 +381,66 @@ class WordController extends Controller
                     : 'Niets gewijzigd.'
             );
         }
+
+        return $this->redirect($returnUrl);
+    }
+
+    /**
+     * Assigns selected words to one list in a single action — e.g. a pile
+     * of list-less words from the "no list" filter. Value 'none' removes
+     * words from their list again.
+     * Expects POST data: assign_ids[], assign_list, returnUrl.
+     * @return \yii\web\Response
+     */
+    public function actionBulkAssign()
+    {
+        $ids = array_map('intval', (array) $this->request->post('assign_ids', []));
+        $target = $this->request->post('assign_list', '');
+        $returnUrl = $this->request->post('returnUrl', ['index']);
+
+        if ($ids === []) {
+            Yii::$app->session->setFlash('info', 'Niets geselecteerd.');
+            return $this->redirect($returnUrl);
+        }
+        if ($target === '' || $target === null) {
+            Yii::$app->session->setFlash('warning', 'Kies eerst een lijst om naar toe te wijzen.');
+            return $this->redirect($returnUrl);
+        }
+        if ($target === 'none') {
+            $chapterId = null;
+        } elseif (ctype_digit((string) $target) && \app\models\Chapter::findOne((int) $target) !== null) {
+            $chapterId = (int) $target;
+        } else {
+            Yii::$app->session->setFlash('warning', 'Onbekende lijst gekozen.');
+            return $this->redirect($returnUrl);
+        }
+
+        $saved = 0;
+        $skipped = 0;
+        foreach (Word::findAll(['id' => $ids]) as $word) {
+            // Lenient scenario: assigning a list must also work for
+            // untranslated words (dutch may stay empty).
+            $word->scenario = 'bulkTranslate';
+            $oldChapterId = $word->chapter_id === null || $word->chapter_id === '' ? null : (int) $word->chapter_id;
+            if ($chapterId === $oldChapterId) {
+                $skipped++;
+                continue;
+            }
+            $word->chapter_id = $chapterId;
+            if ($word->save()) {
+                $saved++;
+            } else {
+                $skipped++;
+                Yii::error('Failed to bulk-assign word ' . $word->id . ': ' . print_r($word->errors, true));
+            }
+        }
+
+        Yii::$app->session->setFlash(
+            $saved > 0 ? 'success' : 'info',
+            $saved > 0
+                ? $saved . ($saved === 1 ? ' woord toegewezen.' : ' woorden toegewezen.')
+                : 'Niets gewijzigd.'
+        );
 
         return $this->redirect($returnUrl);
     }

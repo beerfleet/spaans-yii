@@ -22,6 +22,7 @@ $chapterList = Chapter::find()
 
 $total = $dataProvider->getTotalCount();
 $returnUrl = Yii::$app->request->url;
+$suggestions = Word::suggestLists($dataProvider->getModels());
 ?>
 <div class="word-index">
 
@@ -59,14 +60,18 @@ $returnUrl = Yii::$app->request->url;
                         ->column(),
                     ['prompt' => 'Alle', 'class' => 'form-control']
                 ),
-                'content' => function ($model) use ($chapterList) {
+                'content' => function ($model) use ($chapterList, $suggestions) {
                     /** @var Word $model */
-                    return Html::dropDownList(
+                    $html = Html::dropDownList(
                         "Translation[{$model->id}][chapter_id]",
                         $model->chapter_id,
                         $chapterList,
                         ['prompt' => '—', 'class' => 'form-control form-control-sm']
                     );
+                    if ($model->chapter_id === null && isset($suggestions[$model->id])) {
+                        $html .= '<div class="small text-muted">ook in: ' . Html::encode(implode(', ', $suggestions[$model->id])) . '</div>';
+                    }
+                    return $html;
                 },
             ],
             'spanish',

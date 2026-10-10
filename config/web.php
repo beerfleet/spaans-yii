@@ -67,6 +67,7 @@ $config = [
                 'woord/onvertaald' => 'word/list-untranslated',
                 'woord/dubbelen' => 'word/duplicates',
                 'woord/bulk-vertaal' => 'word/bulk-translate',
+                'woord/bulk-toewijzen' => 'word/bulk-assign',
                 'oefenen' => 'practice/start',
                 'oefenen/oefening' => 'practice/practice',
                 'oefenen/woord/<id:\d+>' => 'practice/practice-word',

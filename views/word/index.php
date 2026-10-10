@@ -5,6 +5,7 @@ use app\models\Word;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\grid\ActionColumn;
+use yii\grid\CheckboxColumn;
 use yii\grid\GridView;
 
 /** @var yii\web\View $this */
@@ -23,6 +24,7 @@ $chapterList = Chapter::find()
     ->column();
 
 $returnUrl = Yii::$app->request->url;
+$suggestions = Word::suggestLists($dataProvider->getModels());
 ?>
 <div class="word-index">
 
@@ -40,14 +42,28 @@ $returnUrl = Yii::$app->request->url;
     <p class="text-muted">
         Pas Nederlands en/of lijst per regel aan en bewaar alles in één keer (geldt voor deze pagina).
         Spaans wijzig je per woord via het potloodje.
+        Vink woorden aan om ze in één keer aan een lijst toe te wijzen.
     </p>
 
     <?= Html::beginForm(['word/bulk-translate'], 'post') ?>
     <?= Html::hiddenInput(Yii::$app->request->csrfParam, Yii::$app->request->getCsrfToken()) ?>
     <?= Html::hiddenInput('returnUrl', $returnUrl) ?>
 
-    <p>
+    <p class="d-flex gap-2 flex-wrap">
         <?= Html::submitButton('Alles opslaan', ['class' => 'btn btn-success']) ?>
+    </p>
+
+    <p class="d-flex gap-2 align-items-center flex-wrap">
+        <?= Html::dropDownList(
+            'assign_list',
+            '',
+            ['none' => '— Geen lijst —'] + $chapterList,
+            ['prompt' => 'Kies een lijst…', 'class' => 'form-control', 'style' => 'max-width: 240px;']
+        ) ?>
+        <?= Html::submitButton('Selectie toewijzen', [
+            'class' => 'btn btn-outline-primary',
+            'formaction' => Url::to(['word/bulk-assign']),
+        ]) ?>
     </p>
 
     <?= GridView::widget([
@@ -58,6 +74,10 @@ $returnUrl = Yii::$app->request->url;
 
             // 'id',
             [
+                'class' => CheckboxColumn::class,
+                'name' => 'assign_ids',
+            ],
+            [
                 'attribute' => 'chapter_id',
                 'label' => 'Lijst',
                 'filter' => Html::activeDropDownList(
@@ -66,14 +86,18 @@ $returnUrl = Yii::$app->request->url;
                     [0 => '— Zonder lijst —'] + $chapterList,
                     ['prompt' => 'Alle', 'class' => 'form-control']
                 ),
-                'content' => function ($model) use ($chapterList) {
+                'content' => function ($model) use ($chapterList, $suggestions) {
                     /** @var Word $model */
-                    return Html::dropDownList(
+                    $html = Html::dropDownList(
                         "Translation[{$model->id}][chapter_id]",
                         $model->chapter_id,
                         $chapterList,
                         ['prompt' => '—', 'class' => 'form-control form-control-sm']
                     );
+                    if ($model->chapter_id === null && isset($suggestions[$model->id])) {
+                        $html .= '<div class="small text-muted">ook in: ' . Html::encode(implode(', ', $suggestions[$model->id])) . '</div>';
+                    }
+                    return $html;
                 },
             ],
             'spanish',

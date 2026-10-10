@@ -243,6 +243,74 @@ class Word extends ActiveRecord
     }
 
     /**
+     * Suggests lists for list-less words, based on lists where the same
+     * Spanish form (accent-lenient) or the same Dutch translation already
+     * lives. Helps decide where an unassigned word belongs.
+     * Two queries total, regardless of page size.
+     * @param Word[] $words typically the current grid page models
+     * @return array word id => list names (max 3 each)
+     */
+    public static function suggestLists(array $words)
+    {
+        $needles = [];
+        foreach ($words as $word) {
+            if ($word->chapter_id !== null) {
+                continue;
+            }
+            $needles[$word->id] = $word;
+        }
+        if (empty($needles)) {
+            return [];
+        }
+
+        $spanishForms = [];
+        $dutchValues = [];
+        foreach ($needles as $word) {
+            $spanishForms[] = $word->spanish;
+            if (trim((string) $word->dutch) !== '') {
+                $dutchValues[] = $word->dutch;
+            }
+        }
+        $conditions = ['or'];
+        if (!empty($spanishForms)) {
+            $conditions[] = ['spanish' => array_values(array_unique($spanishForms))];
+        }
+        if (!empty($dutchValues)) {
+            $conditions[] = ['dutch' => array_values(array_unique($dutchValues))];
+        }
+
+        $siblings = self::find()
+            ->where($conditions)
+            ->andWhere(['not', ['chapter_id' => null]])
+            ->with('chapter')
+            ->all();
+
+        $bySpanish = [];
+        $byDutch = [];
+        foreach ($siblings as $sibling) {
+            if ($sibling->chapter === null) {
+                continue;
+            }
+            $bySpanish[self::normalizeAnswer($sibling->spanish)][] = $sibling->chapter->name;
+            $byDutch[mb_strtolower(trim((string) $sibling->dutch))][] = $sibling->chapter->name;
+        }
+
+        $suggestions = [];
+        foreach ($needles as $id => $word) {
+            $names = array_merge(
+                $bySpanish[self::normalizeAnswer($word->spanish)] ?? [],
+                $byDutch[mb_strtolower(trim((string) $word->dutch))] ?? []
+            );
+            $names = array_values(array_unique($names));
+            if (!empty($names)) {
+                $suggestions[$id] = array_slice($names, 0, 3);
+            }
+        }
+
+        return $suggestions;
+    }
+
+    /**
      * All accepted answers for a practice prompt, homonym-aware.
      * Same form, different meanings (e.g. "camino": de weg / ik loop) live
      * in separate rows, so counterparts of all rows sharing the prompt count.
