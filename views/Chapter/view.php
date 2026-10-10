@@ -32,7 +32,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a('Wijzig', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
         <?= Html::a('Bekijk woorden', ['word/index-by-chapter', 'chapter_id' => $model->id], ['class' => 'btn btn-outline-secondary']) ?>
         <?php
-        $wordCount = (int) $model->countWordsOfChapter($model->id);
+        $wordCount = (int) $model->countWords();
         $deleteConfirm = "Lijst '{$model->name}' wissen?";
         if ($wordCount === 1) {
             $deleteConfirm .= ' Ook het 1 woord in deze lijst wordt verwijderd.';

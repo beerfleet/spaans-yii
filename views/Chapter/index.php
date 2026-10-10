@@ -41,7 +41,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'filter' => false,
                 'format' => 'raw',
                 'value' => function ($model) {
-                    return $model->countWordsOfChapter($model->id);
+                    return $model->countWords();
                 },
             ],
             [

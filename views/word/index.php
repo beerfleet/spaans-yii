@@ -42,8 +42,6 @@ $returnUrl = Yii::$app->request->url;
         Spaans wijzig je per woord via het potloodje.
     </p>
 
-    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
-
     <?= Html::beginForm(['word/bulk-translate'], 'post') ?>
     <?= Html::hiddenInput(Yii::$app->request->csrfParam, Yii::$app->request->getCsrfToken()) ?>
     <?= Html::hiddenInput('returnUrl', $returnUrl) ?>

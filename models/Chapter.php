@@ -9,7 +9,6 @@ use yii\db\ActiveRecord;
  * This is the model class for table "chapter".
  *
  * @property int $id
- * @property int|null $number Legacy course number, optional; lists sort by name.
  * @property string $name
  * @property string|null $description
  * @property int $created_at
@@ -37,7 +36,6 @@ class Chapter extends ActiveRecord
         return [
             [['description'], 'default', 'value' => null],
             [['name'], 'required', 'message' => 'Het veld {attribute} is verplicht.'],
-            [['number'], 'integer', 'message' => 'Het veld {attribute} moet een getal zijn.'],
             [['description'], 'string'],
             [['created_at', 'updated_at'], 'integer'],
             [['name'], 'string', 'max' => 255],
@@ -53,8 +51,6 @@ class Chapter extends ActiveRecord
                     ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at'],
                     ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
                 ],
-                // Gebruik een database-expressie zoals NOW() als je DATETIME/TIMESTAMP velden gebruikt i.p.v. Unix timestamps
-                // 'value' => new \yii\db\Expression('NOW()'),
             ],
         ];
     }
@@ -67,7 +63,6 @@ class Chapter extends ActiveRecord
         return [
             'id' => 'ID',
             'name' => 'Naam',
-            'number' => 'Nummer (optioneel)',
             'description' => 'Omschrijving',
             'created_at' => 'Gemaakt Op',
             'updated_at' => 'Gewijzigd Op',
@@ -85,12 +80,11 @@ class Chapter extends ActiveRecord
     }
 
     /**
-     * Counts the words in a list.
-     * @param int $chapter_id
+     * Counts the words in this list.
      * @return int|string
      */
-    public function countWordsOfChapter($chapter_id) {
-        return $this->getWords()->where(['chapter_id' => $chapter_id])->count();
+    public function countWords() {
+        return $this->getWords()->count();
     }
 
 }

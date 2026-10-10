@@ -74,6 +74,21 @@ class PracticeController extends Controller
         $untranslatedTotal = (int) Word::find()
             ->where(['or', ['dutch' => null], ['dutch' => '']])
             ->count();
+        // Translated words without any practice history, per list.
+        $freshCounts = ArrayHelper::map(
+            Word::findTranslatable()
+                ->select(['chapter_id', 'COUNT(*) AS n'])
+                ->leftJoin(
+                    ['wsu' => WordStatistic::tableName()],
+                    'wsu.word_id = {{%word}}.[[id]]'
+                )
+                ->andWhere(['wsu.id' => null])
+                ->groupBy(['chapter_id'])
+                ->asArray()
+                ->all(),
+            'chapter_id',
+            'n'
+        );
 
         if ($model->load($this->request->post()) && $model->validate()) {
             $useAll = (bool) $model->all_chapters;
@@ -106,6 +121,7 @@ class PracticeController extends Controller
             'translatableTotal' => $translatableTotal,
             'untranslatedCounts' => $untranslatedCounts,
             'untranslatedTotal' => $untranslatedTotal,
+            'freshCounts' => $freshCounts,
         ]);
     }
 
@@ -128,6 +144,13 @@ class PracticeController extends Controller
         ]);
         if (!$useAll) {
             $query->andWhere(['chapter_id' => $model->chapters]);
+        }
+        if ($model->only_unpracticed) {
+            // Truly fresh words: no practice history in either direction.
+            $query->leftJoin(
+                ['wsu' => WordStatistic::tableName()],
+                'wsu.word_id = {{%word}}.[[id]]'
+            )->andWhere(['wsu.id' => null]);
         }
 
         if ($model->difficult_first) {

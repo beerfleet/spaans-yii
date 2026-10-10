@@ -12,6 +12,7 @@ use yii\widgets\ActiveForm;
 /** @var int $translatableTotal */
 /** @var array $untranslatedCounts untranslated words per chapter_id */
 /** @var int $untranslatedTotal */
+/** @var array $freshCounts translated words without any practice history per chapter_id */
 
 $this->title = 'Oefening starten';
 $this->params['breadcrumbs'][] = $this->title;
@@ -20,15 +21,18 @@ $counts = $counts ?? [];
 $translatableTotal = $translatableTotal ?? 0;
 $untranslatedCounts = $untranslatedCounts ?? [];
 $untranslatedTotal = $untranslatedTotal ?? 0;
+$freshCounts = $freshCounts ?? [];
 
 $chapterOptions = [];
 foreach ($chapters as $chapter) {
     $n = (int) ($counts[$chapter->id] ?? 0);
     $u = (int) ($untranslatedCounts[$chapter->id] ?? 0);
+    $f = (int) ($freshCounts[$chapter->id] ?? 0);
     $chapterOptions[$chapter->id] = sprintf(
-        '%s (%d te oefenen%s)',
+        '%s (%d te oefenen%s%s)',
         $chapter->name,
         $n,
+        $f > 0 ? ", {$f} nooit geoefend" : '',
         $u > 0 ? ", {$u} onvertaald" : ''
     );
 }
@@ -59,6 +63,8 @@ foreach ($chapters as $chapter) {
     ]) ?>
 
     <?= $form->field($model, 'difficult_first')->checkbox()->hint('Woorden waar je het vaakst fout op ging eerst.') ?>
+
+    <?= $form->field($model, 'only_unpracticed')->checkbox()->hint('Alleen woorden zonder enige oefenhistorie.') ?>
 
     <div class="form-group">
         <?= Html::submitButton('Start oefening', [
