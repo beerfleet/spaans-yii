@@ -292,6 +292,34 @@ class Word extends ActiveRecord
     }
 
     /**
+     * Rows holding several comma-separated variants in one field, e.g.
+     * spanish "empleo, trabajo, pista, órbita". These never surface in
+     * duplicate groups (grouping works across rows), yet blur meanings
+     * together — hence their own overview section with a split action.
+     * @return Word[] ordered by Spanish
+     */
+    public static function findMultiVariantRows()
+    {
+        $rows = [];
+        foreach (self::find()->orderBy(['spanish' => SORT_ASC])->all() as $word) {
+            foreach ([$word->spanish, $word->dutch] as $value) {
+                $parts = [];
+                foreach (explode(',', (string) $value) as $part) {
+                    $part = trim($part);
+                    if ($part !== '' && !in_array($part, $parts)) {
+                        $parts[] = $part;
+                    }
+                }
+                if (count($parts) > 1) {
+                    $rows[] = $word;
+                    break;
+                }
+            }
+        }
+        return $rows;
+    }
+
+    /**
      * Groups rows sharing a word form ("doubles"): exact duplicates,
      * homonyms with different meanings, overlapping comma-parts
      * (e.g. "hola,dia, buenas" vs "hola") and shared translations

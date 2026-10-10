@@ -28,6 +28,7 @@ class WordController extends Controller
                         'delete' => ['POST'],
                         'bulk-translate' => ['POST'],
                         'bulk-assign' => ['POST'],
+                        'split' => ['POST'],
                     ],
                 ],
             ]
@@ -528,7 +529,64 @@ class WordController extends Controller
             'groups' => $groups,
             'groupCount' => count($groups),
             'wordCount' => $wordCount,
+            'multiVariantRows' => Word::findMultiVariantRows(),
         ]);
+    }
+
+    /**
+     * Splits a multi-variant row ("a, b, c") into one row per Spanish
+     * variant, keeping the Dutch translation and lists. The original row
+     * (with its statistics) is removed.
+     * @param int $id ID
+     * @return \yii\web\Response
+     * @throws NotFoundHttpException if the model cannot be found
+     */
+    public function actionSplit($id)
+    {
+        $word = $this->findModel($id);
+        $parts = [];
+        foreach (explode(',', (string) $word->spanish) as $part) {
+            $part = trim($part);
+            if ($part !== '' && !in_array($part, $parts)) {
+                $parts[] = $part;
+            }
+        }
+
+        if (count($parts) < 2) {
+            Yii::$app->session->setFlash('info', 'Niets te splitsen: deze rij heeft geen meerdere varianten.');
+            return $this->redirect(['duplicates']);
+        }
+
+        $lists = $word->getChapterIds();
+        $created = 0;
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            foreach ($parts as $part) {
+                $newWord = new Word();
+                $newWord->scenario = 'bulkCreate';
+                $newWord->spanish = $part;
+                $newWord->dutch = $word->dutch;
+                $newWord->chapterIds = $lists;
+                if ($newWord->save()) {
+                    $created++;
+                } else {
+                    Yii::error('Failed to split word ' . $word->id . ': ' . print_r($newWord->errors, true));
+                }
+            }
+            if ($created === count($parts)) {
+                $word->delete();
+            }
+            $transaction->commit();
+        } catch (\Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+
+        Yii::$app->session->setFlash(
+            $created === count($parts) ? 'success' : 'warning',
+            "Gesplitst in {$created} van de " . count($parts) . ' rijen.'
+        );
+        return $this->redirect(['duplicates']);
     }
 
     /**

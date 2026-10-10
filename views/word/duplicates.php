@@ -5,9 +5,10 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 
 /** @var yii\web\View $this */
-/** @var array $groups normalized form => Word[] (each 2+ rows) */
+/** @var array $groups shared term => Word[] (each 2+ distinct rows) */
 /** @var int $groupCount */
 /** @var int $wordCount */
+/** @var Word[] $multiVariantRows rows with several comma-separated variants in one field */
 
 $this->title = 'Dubbele woorden';
 $this->params['breadcrumbs'][] = ['label' => 'Woorden', 'url' => ['index']];
@@ -31,6 +32,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <?php
         $spanishForms = [];
         $meanings = [];
+        $dutchByForm = [];
         foreach ($group as $word) {
             /** @var Word $word */
             $form = mb_strtolower(trim((string) $word->spanish));
@@ -42,19 +44,34 @@ $this->params['breadcrumbs'][] = $this->title;
             if (!in_array($meaning, $meanings)) {
                 $meanings[] = $meaning;
             }
+            $normDutch = mb_strtolower($dutch);
+            if ($normDutch !== '') {
+                $dutchByForm[$normDutch][] = $form;
+            }
         }
         $sameForm = count($spanishForms) === 1;
         $isHomonym = $sameForm && count($meanings) > 1;
+        // Same full translation on different Spanish forms: Dutch homonym
+        // (bank → sofá/banco) or synonyms sharing one translation.
+        $sharedTranslation = null;
+        foreach ($dutchByForm as $dutch => $forms) {
+            if (count(array_unique($forms)) > 1) {
+                $sharedTranslation = $dutch;
+                break;
+            }
+        }
         ?>
         <div class="card mb-3">
             <div class="card-header d-flex justify-content-between align-items-center gap-2">
                 <strong><?= Html::encode($term) ?></strong>
                 <?php if ($isHomonym): ?>
                     <span class="badge bg-info text-dark">Homoniemen: <?= Html::encode(implode(' · ', $meanings)) ?></span>
-                <?php elseif (!$sameForm): ?>
-                    <span class="badge bg-secondary">Overlappend (<?= count($group) ?>×)</span>
-                <?php else: ?>
+                <?php elseif ($sameForm): ?>
                     <span class="badge bg-warning text-dark">Dubbel (<?= count($group) ?>×)</span>
+                <?php elseif ($sharedTranslation !== null): ?>
+                    <span class="badge bg-primary">Zelfde vertaling: <?= Html::encode($sharedTranslation) ?></span>
+                <?php else: ?>
+                    <span class="badge bg-secondary">Overlappend (<?= count($group) ?>×)</span>
                 <?php endif; ?>
             </div>
             <div class="table-responsive">
@@ -88,6 +105,57 @@ $this->params['breadcrumbs'][] = $this->title;
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    <?php endforeach; ?>
+
+    <h2 class="mt-5">Rijen met meerdere varianten</h2>
+    <p class="text-muted">
+        Eén rij met komma-varianten (zoals <em>empleo, trabajo, pista, órbita = baan</em>)
+        groepeert nooit mee hierboven. Splitsen maakt er losse rijen van
+        (Nederlands en lijsten blijven behouden; statistieken van de oude rij vervallen).
+    </p>
+
+    <?php $multiVariantRows = $multiVariantRows ?? []; ?>
+    <?php if (empty($multiVariantRows)): ?>
+        <div class="alert alert-success">Geen rijen met meerdere varianten.</div>
+    <?php endif; ?>
+
+    <?php foreach ($multiVariantRows as $word): ?>
+        <?php
+        /** @var Word $word */
+        $parts = [];
+        foreach (explode(',', (string) $word->spanish) as $part) {
+            $part = trim($part);
+            if ($part !== '' && !in_array($part, $parts)) {
+                $parts[] = $part;
+            }
+        }
+        ?>
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center gap-2">
+                <strong><?= Html::encode($word->spanish) ?> = <?= Html::encode((string) $word->dutch) ?></strong>
+                <span class="badge bg-secondary"><?= count($parts) ?> varianten</span>
+            </div>
+            <div class="card-body d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                <div>
+                    <?php foreach ($parts as $part): ?>
+                        <span class="badge bg-light text-dark border me-1"><?= Html::encode($part) ?></span>
+                    <?php endforeach; ?>
+                    <?php if ($word->getListsText() !== null): ?>
+                        <span class="text-muted small ms-2"><?= Html::encode($word->getListsText()) ?></span>
+                    <?php endif; ?>
+                </div>
+                <div class="d-flex gap-2">
+                    <?= Html::a('Bekijk', ['view', 'id' => $word->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
+                    <?= Html::a('Splitsen', ['split', 'id' => $word->id], [
+                        'class' => 'btn btn-sm btn-outline-success',
+                        'data' => [
+                            'confirm' => 'Splitsen in ' . count($parts) . ' losse rijen? Statistieken van deze rij vervallen.',
+                            'method' => 'post',
+                        ],
+                    ]) ?>
+                </div>
             </div>
         </div>
     <?php endforeach; ?>
