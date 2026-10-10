@@ -65,15 +65,26 @@ class WordController extends Controller
     }
 
     /**
-     * Displays a single Word model.
+     * Displays a single Word model as a hub: edit actions, direct practice
+     * links, homonyms sharing the Spanish form, and practice statistics.
      * @param int $id ID
      * @return string
      * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionView($id)
     {
+        $model = $this->findModel($id);
+
         return $this->render('view', [
-            'model' => $this->findModel($id),
+            'model' => $model,
+            'homonyms' => Word::find()
+                ->where(['spanish' => $model->spanish])
+                ->andWhere(['not', ['id' => $model->id]])
+                ->with('chapter')
+                ->all(),
+            'statistics' => \app\models\WordStatistic::find()
+                ->where(['word_id' => $model->id])
+                ->all(),
         ]);
     }
 

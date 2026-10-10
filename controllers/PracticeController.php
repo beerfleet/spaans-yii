@@ -29,6 +29,7 @@ class PracticeController extends Controller
                     'actions' => [
                         'repeat' => ['POST'],
                         'stop' => ['POST'],
+                        'practice-word' => ['POST'],
                     ],
                 ],
             ]
@@ -295,6 +296,36 @@ class PracticeController extends Controller
 
         $practice['position']++;
         $session->set('practice', $practice);
+    }
+
+    /**
+     * Starts a one-word practice session straight from a word page.
+     * @param int $id word ID
+     * @return Response
+     */
+    public function actionPracticeWord($id)
+    {
+        $word = Word::findOne((int) $id);
+        if ($word === null) {
+            throw new \yii\web\NotFoundHttpException('The requested page does not exist.');
+        }
+
+        if (trim((string) $word->dutch) === '') {
+            Yii::$app->session->setFlash('info', 'Vertaal dit woord eerst — onvertaalde woorden doen niet mee aan oefenen.');
+            return $this->redirect(['word/view', 'id' => $word->id]);
+        }
+
+        $nlToSp = Yii::$app->request->post('dir', 'nl') !== 'sp';
+        Yii::$app->session->set('practice', [
+            'chapters' => $word->chapter_id === null ? [] : [(int) $word->chapter_id],
+            'nl_to_sp' => $nlToSp,
+            'word_ids' => [(int) $word->id],
+            'position' => 0,
+            'correct' => 0,
+            'results' => [],
+        ]);
+
+        return $this->redirect(['practice']);
     }
 
     /**

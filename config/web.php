@@ -70,6 +70,7 @@ $config = [
                 'woord/bulk-vertaal' => 'word/bulk-translate',
                 'oefenen' => 'practice/start',
                 'oefenen/oefening' => 'practice/practice',
+                'oefenen/woord/<id:\d+>' => 'practice/practice-word',
                 'oefenen/resultaat' => 'practice/result',
                 'oefenen/statistieken' => 'practice/stats'
                 
