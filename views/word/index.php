@@ -89,14 +89,35 @@ $suggestions = Word::suggestLists($dataProvider->getModels());
                 ),
                 'content' => function ($model) use ($chapterList, $suggestions) {
                     /** @var Word $model */
-                    $html = Html::listBox(
-                        "Translation[{$model->id}][chapter_ids]",
-                        $model->getChapterIds(),
-                        $chapterList,
-                        ['multiple' => true, 'size' => 3, 'class' => 'form-control form-control-sm']
-                    );
-                    if (empty($model->getChapterIds()) && isset($suggestions[$model->id])) {
-                        $html .= '<div class="small text-muted">ook in: ' . Html::encode(implode(', ', $suggestions[$model->id])) . '</div>';
+                    $selected = $model->getChapterIds();
+                    $badges = '';
+                    foreach ($selected as $cid) {
+                        if (isset($chapterList[$cid])) {
+                            $badges .= '<span class="badge text-bg-secondary me-1 mb-1">' . Html::encode($chapterList[$cid]) . '</span>';
+                        }
+                    }
+                    $html = '';
+                    if ($badges !== '') {
+                        $html .= '<div class="mb-1">' . $badges . '</div>';
+                    }
+                    $html .= '<details class="small">';
+                    $html .= '<summary class="text-muted" style="cursor:pointer;">Lijsten bewerken' . (count($selected) ? ' (' . count($selected) . ')' : '') . '</summary>';
+                    $html .= '<div class="mt-1" style="max-height:140px; overflow:auto;">';
+                    foreach ($chapterList as $cid => $name) {
+                        $checked = in_array((int) $cid, array_map('intval', $selected), true);
+                        $html .= '<div class="form-check form-check-inline m-0">';
+                        $html .= Html::checkbox(
+                            "Translation[{$model->id}][chapter_ids][]",
+                            $checked,
+                            ['value' => $cid, 'class' => 'form-check-input', 'id' => "ch-{$model->id}-{$cid}"]
+                        );
+                        $html .= Html::label(Html::encode($name), "ch-{$model->id}-{$cid}", ['class' => 'form-check-label small']);
+                        $html .= '</div><br>';
+                    }
+                    $html .= '</div>';
+                    $html .= '</details>';
+                    if (empty($selected) && isset($suggestions[$model->id])) {
+                        $html .= '<div class="small text-muted mt-1">ook in: ' . Html::encode(implode(', ', $suggestions[$model->id])) . '</div>';
                     }
                     return $html;
                 },
