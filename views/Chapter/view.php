@@ -31,6 +31,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <p>
         <?= Html::a('Wijzig', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
         <?= Html::a('Bekijk woorden', ['word/index-by-chapter', 'chapter_id' => $model->id], ['class' => 'btn btn-outline-secondary']) ?>
+        <?= Html::a('Woorden beheren', ['manage-words', 'id' => $model->id], ['class' => 'btn btn-outline-primary']) ?>
         <?php
         $wordCount = (int) $model->countWords();
         $deleteConfirm = "Lijst '{$model->name}' wissen?";
@@ -101,7 +102,13 @@ $this->params['breadcrumbs'][] = $this->title;
                         <tr>
                             <td><?= Html::encode($word->spanish) ?></td>
                             <td><?= trim((string) $word->dutch) !== '' ? Html::encode($word->dutch) : '<span class="text-muted">—</span>' ?></td>
-                            <td><?= Html::a('Bekijk', ['word/view', 'id' => $word->id], ['class' => 'btn btn-sm btn-outline-primary']) ?></td>
+                            <td class="text-nowrap">
+                                <?= Html::a('Bekijk', ['word/view', 'id' => $word->id], ['class' => 'btn btn-sm btn-outline-primary']) ?>
+                                <?= Html::a('Uit lijst', ['remove-word', 'id' => $model->id, 'word_id' => $word->id], [
+                                    'class' => 'btn btn-sm btn-outline-danger',
+                                    'data' => ['method' => 'post', 'confirm' => 'Woord uit deze lijst halen?'],
+                                ]) ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

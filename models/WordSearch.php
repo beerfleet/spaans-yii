@@ -180,6 +180,37 @@ class WordSearch extends Word
         return $dataProvider;
     }
 
+    /**
+     * Words that are NOT linked to the given chapter (for the "manage words"
+     * page of a list). Supports the usual spanish/dutch filters.
+     */
+    public function searchNotInChapter($chapter_id, $params, $formName = null)
+    {
+        $query = Word::find()
+            ->where(['not exists', self::junctionExists((int) $chapter_id)])
+            ->with('chapters');
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);
+
+        $this->load($params, $formName);
+
+        if (!$this->validate()) {
+            return $dataProvider;
+        }
+
+        $query->andFilterWhere([
+            'id' => $this->id,
+        ]);
+        $this->applyChapterFilter($query);
+
+        $query->andFilterWhere(['like', 'dutch', $this->dutch])
+            ->andFilterWhere(['like', 'spanish', $this->spanish]);
+
+        return $dataProvider;
+    }
+
     public function getChapterName($chapter_id) {
         $chapter = Chapter::findOne($chapter_id);
         return $chapter ? $chapter->name : null;

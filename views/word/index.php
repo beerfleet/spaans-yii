@@ -37,6 +37,9 @@ $suggestions = Word::suggestLists($dataProvider->getModels());
     <p>
         <?= Html::a('Nieuw Woord', ['create'], ['class' => 'btn btn-success']) ?>
         <?= Html::a('Meerdere woorden', ['create-multiple'], ['class' => 'btn btn-success']) ?>
+        <?php if (isset($chapter_id)) : ?>
+            <?= Html::a('Woorden beheren', ['chapter/manage-words', 'id' => $chapter_id], ['class' => 'btn btn-outline-primary']) ?>
+        <?php endif; ?>
     </p>
 
     <p class="text-muted">

@@ -24,6 +24,8 @@ Pretty URLs on, strict parsing off. Dutch aliases:
 - `hoofdstuk/maak` → `chapter/create`
 - `hoofdstuk/wijzig/<id:\d+>` → `chapter/update`
 - `hoofdstuk/bekijk/<id:\d+>` → `chapter/view`
+- `hoofdstuk/beheer/<id:\d+>` → `chapter/manage-words`
+- `hoofdstuk/verwijder-woord/<id:\d+>/<word_id:\d+>` → `chapter/remove-word`
 - `hoofdstuk/wis/<id:\d+>` → `chapter/delete`
 - (also `chapter/index` → `chapter`)
 
@@ -55,7 +57,7 @@ Pretty URLs on, strict parsing off. Dutch aliases:
 
 **WordController**: `index`, `index-by-chapter`, `view`, `list-untranslated`, `create`, `create-multiple`, `update`, `delete`, `duplicates`, `split`, `bulk-translate`, `bulk-assign`. VerbFilter POST: delete, bulk-translate, bulk-assign, split.
 
-**ChapterController**: `index`, `view`, `create`, `update`, `delete`. VerbFilter POST: delete.
+**ChapterController**: `index`, `view`, `create`, `update`, `delete`, `manage-words`, `remove-word`. VerbFilter POST: delete, remove-word.
 
 **PracticeController**: `start`, `practice`, `practice-word`, `stop`, `result`, `repeat`, `stats`, `reset-stat`. VerbFilter POST: repeat, stop, practice-word, reset-stat.
 

@@ -4,6 +4,9 @@ namespace app\controllers;
 
 use app\models\Chapter;
 use app\models\ChapterSearch;
+use app\models\Word;
+use app\models\WordSearch;
+use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -25,6 +28,7 @@ class ChapterController extends Controller
                     'class' => VerbFilter::class,
                     'actions' => [
                         'delete' => ['POST'],
+                        'remove-word' => ['POST'],
                     ],
                 ],
             ]
@@ -127,6 +131,54 @@ class ChapterController extends Controller
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
+    }
+
+    /**
+     * Manage which words belong to this list: shows words not yet in the
+     * list with a checkbox column so they can be added in bulk.
+     * @param int $id
+     * @return string
+     * @throws NotFoundHttpException
+     */
+    public function actionManageWords($id)
+    {
+        $model = $this->findModel($id);
+
+        $searchModel = new WordSearch();
+        $dataProvider = $searchModel->searchNotInChapter($id, $this->request->queryParams);
+
+        $chapterList = \app\models\Chapter::find()
+            ->select(['name'])
+            ->orderBy(['name' => SORT_ASC])
+            ->indexBy('id')
+            ->column();
+
+        $returnUrl = Yii::$app->request->url;
+
+        return $this->render('manage-words', [
+            'model' => $model,
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+            'chapterList' => $chapterList,
+            'returnUrl' => $returnUrl,
+        ]);
+    }
+
+    /**
+     * Removes a single word from this list (keeps its other lists).
+     * @param int $id chapter id
+     * @param int $word_id
+     * @return \yii\web\Response
+     * @throws NotFoundHttpException
+     */
+    public function actionRemoveWord($id, $word_id)
+    {
+        $this->findModel($id);
+        Yii::$app->db->createCommand()
+            ->delete('{{%chapter_word}}', ['chapter_id' => (int) $id, 'word_id' => (int) $word_id])
+            ->execute();
+        Yii::$app->session->setFlash('success', 'Woord uit lijst gehaald.');
+        return $this->redirect(['view', 'id' => $id]);
     }
 
     /**
